@@ -178,6 +178,10 @@ export async function listPayments(page = 1, perPage = 20) {
   );
 }
 
+export async function refundPayment(reference: string, amount?: number) {
+  return request<GeniusPayment>("POST", `/payments/${reference}/refund`, amount ? { amount } : undefined);
+}
+
 export async function getBalance() {
   return request<{
     available: number;

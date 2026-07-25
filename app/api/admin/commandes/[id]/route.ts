@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
+import { refundPayment } from "@/lib/geniuspay";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requireRole("ADMIN", "SUPERVISEUR", "CONCIERGE");
@@ -36,6 +37,28 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   if (!["EN_ATTENTE", "CONFIRMEE", "ANNULEE", "PAYEE"].includes(statut)) {
     return NextResponse.json({ error: "Statut invalide" }, { status: 400 });
+  }
+
+  if (statut === "ANNULEE") {
+    const payments = await prisma.payment.findMany({
+      where: {
+        metadata: { contains: id },
+        statut: "completed",
+      },
+    });
+
+    for (const payment of payments) {
+      try {
+        await refundPayment(payment.reference);
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { statut: "rembourse" },
+        });
+        console.log(`[annulation] Remboursement automatique: ${payment.reference} — ${payment.montant} XOF`);
+      } catch (err) {
+        console.error(`[annulation] Echec remboursement ${payment.reference}:`, err);
+      }
+    }
   }
 
   const commande = await prisma.commande.update({

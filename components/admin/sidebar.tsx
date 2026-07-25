@@ -28,15 +28,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Tableau de bord", roles: ["ADMIN", "SUPERVISEUR", "CONCIERGE", "AGENT_INSTITUTIONNEL", "SCANNER"] },
-  { href: "/briefing", icon: ClipboardCheck, label: "Briefing", roles: ["CONCIERGE"] },
-  { href: "/commandes", icon: ClipboardList, label: "Commandes", badge: true, roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/events", icon: CalendarDays, label: "Evenements", roles: ["ADMIN", "SUPERVISEUR", "AGENT_INSTITUTIONNEL"] },
-  { href: "/residences", icon: Building, label: "Residences", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/tarifs", icon: Banknote, label: "Tarifs", roles: ["ADMIN"] },
-  { href: "/voyageurs", icon: Users, label: "Voyageurs", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/chauffeurs", icon: CarFront, label: "Chauffeurs", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/rapports", icon: BarChart3, label: "Rapports", roles: ["ADMIN", "SUPERVISEUR"] },
+  { href: "/admin/dashboard", icon: LayoutDashboard, label: "Tableau de bord", roles: ["ADMIN", "SUPERVISEUR", "CONCIERGE", "AGENT_INSTITUTIONNEL", "SCANNER"] },
+  { href: "/admin/briefing", icon: ClipboardCheck, label: "Briefing", roles: ["CONCIERGE"] },
+  { href: "/admin/commandes", icon: ClipboardList, label: "Commandes", badge: true, roles: ["ADMIN", "SUPERVISEUR"] },
+  { href: "/admin/events", icon: CalendarDays, label: "Evenements", roles: ["ADMIN", "SUPERVISEUR", "AGENT_INSTITUTIONNEL"] },
+  { href: "/admin/residences", icon: Building, label: "Residences", roles: ["ADMIN", "SUPERVISEUR"] },
+  { href: "/admin/tarifs", icon: Banknote, label: "Tarifs", roles: ["ADMIN"] },
+  { href: "/admin/voyageurs", icon: Users, label: "Voyageurs", roles: ["ADMIN", "SUPERVISEUR"] },
+  { href: "/admin/chauffeurs", icon: CarFront, label: "Chauffeurs", roles: ["ADMIN", "SUPERVISEUR"] },
+  { href: "/admin/rapports", icon: BarChart3, label: "Rapports", roles: ["ADMIN", "SUPERVISEUR"] },
 ];
 
 const ROLE_DISPLAY: Record<Role, string> = {
@@ -116,7 +116,7 @@ export function Sidebar({ adminName, adminRole, userRole, pendingCount, open, on
           })}
           <div className="h-px bg-cream/10 my-4" />
           <Link
-            href="/parametres"
+            href="/admin/parametres"
             onClick={onClose}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] transition-colors ${
               pathname === "/parametres"

@@ -5,12 +5,10 @@ import { getToken } from "next-auth/jwt";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-const ADMIN_PATHS = ["/dashboard", "/commandes", "/tarifs", "/voyageurs", "/chauffeurs", "/rapports", "/parametres", "/briefing", "/residences", "/events"];
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+  if (pathname.startsWith("/admin")) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET || "aiko-dev-secret-change-in-prod" });
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));

@@ -53,11 +53,6 @@ export function Footer() {
                   contact@aikoboard.com
                 </a>
               </li>
-              <li>
-                <Link href="/login" className="hover:text-cream transition-colors">
-                  {t("admin_space")}
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
