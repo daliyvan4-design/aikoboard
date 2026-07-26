@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -7,8 +8,6 @@ import { routing } from "@/lib/i18n-routing";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import "../globals.css";
-
-const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
 
 const META: Record<string, { title: string; description: string }> = {
   fr: {
@@ -75,14 +74,8 @@ export default async function LocaleLayout({
           <main className="min-h-[calc(100vh-68px)]">{children}</main>
           <Footer />
         </NextIntlClientProvider>
-        {PLAUSIBLE_DOMAIN && (
-          <Script
-            defer
-            data-domain={PLAUSIBLE_DOMAIN}
-            src="https://plausible.io/js/script.js"
-            strategy="afterInteractive"
-          />
-        )}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
