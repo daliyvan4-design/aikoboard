@@ -75,84 +75,6 @@ interface EventData {
   _count: { participants: number };
 }
 
-const DEMO_EVENTS: Record<string, EventData> = {
-  "salon-tech-2026": {
-    slug: "salon-tech-2026",
-    nom: "Salon Tech Abidjan 2026",
-    type: "conference",
-    description: "Le rendez-vous annuel de la tech et de l'innovation en Afrique de l'Ouest. Conferences, B2B, networking.",
-    organisateur: "AIKO Board",
-    lieu: "Sofitel Hotel Ivoire",
-    ville: "Abidjan",
-    dateDebut: "2026-03-11",
-    dateFin: "2026-03-17",
-    capacite: 1000,
-    badgePayant: false,
-    prixBadge: 0,
-    ticketPayant: false,
-    prixTicket: 0,
-    latitude: 5.3364,
-    longitude: -4.0267,
-    _count: { participants: 850 },
-  },
-  "afro-music-festival": {
-    slug: "afro-music-festival",
-    nom: "Afro Music Festival",
-    type: "concert",
-    description: "3 jours de musique live — Afrobeats, Coupe-Decale, Amapiano. 20+ artistes internationaux.",
-    organisateur: "AfroBeat Productions",
-    lieu: "Palais de la Culture",
-    ville: "Abidjan",
-    dateDebut: "2026-04-22",
-    dateFin: "2026-04-24",
-    capacite: 5000,
-    badgePayant: false,
-    prixBadge: 0,
-    ticketPayant: true,
-    prixTicket: 15000,
-    latitude: 5.3189,
-    longitude: -3.9735,
-    _count: { participants: 3200 },
-  },
-  "summit-mines-energie": {
-    slug: "summit-mines-energie",
-    nom: "Summit Mines & Energie",
-    type: "conference",
-    description: "Forum international sur les ressources extractives et energetiques en Cote d'Ivoire.",
-    organisateur: "Ministere des Mines",
-    lieu: "Radisson Blu",
-    ville: "Abidjan",
-    dateDebut: "2026-05-05",
-    dateFin: "2026-05-07",
-    capacite: 500,
-    badgePayant: false,
-    prixBadge: 0,
-    ticketPayant: false,
-    prixTicket: 0,
-    latitude: 5.3599,
-    longitude: -3.9912,
-    _count: { participants: 420 },
-  },
-  "hackathon-ci": {
-    slug: "hackathon-ci",
-    nom: "Hackathon CI 2026",
-    type: "conference",
-    description: "48h de code non-stop. Themes : FinTech, HealthTech, AgriTech. Prix : 5M XOF.",
-    organisateur: "Ivoirienne de Tech",
-    lieu: "Ivoirienne de Tech",
-    ville: "Cocody",
-    dateDebut: "2026-06-15",
-    dateFin: "2026-06-16",
-    capacite: 250,
-    badgePayant: true,
-    prixBadge: 5000,
-    ticketPayant: false,
-    prixTicket: 0,
-    latitude: 5.3490,
-    longitude: -3.9830,
-    _count: { participants: 200 },
-  },
-};
 
 function formatDateRange(start: string, end: string) {
   const s = new Date(start);
@@ -168,8 +90,8 @@ export default function EventPage() {
   const ts = useTranslations("event.success");
   const eventId = params.id as string;
 
-  const [event, setEvent] = useState<EventData | null>(DEMO_EVENTS[eventId] ?? null);
-  const [loading, setLoading] = useState(!DEMO_EVENTS[eventId]);
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState<"info" | "form" | "done">("info");
   const [form, setForm] = useState({
@@ -190,7 +112,6 @@ export default function EventPage() {
   const selectedTarif = hasLogement ? event!.residence!.tarifs.find((t) => t.id === selectedTarifId) : null;
 
   useEffect(() => {
-    if (DEMO_EVENTS[eventId]) return;
     fetch(`/api/events/${eventId}`)
       .then((r) => r.json())
       .then((d) => {

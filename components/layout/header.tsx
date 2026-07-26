@@ -17,6 +17,9 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-[12px] tracking-wide text-cream/55">
+          <Link href={`/${locale}/evenements`} className="hover:text-cream transition-colors">
+            {t("events")}
+          </Link>
           <Link href={`/${locale}#creer`} className="hover:text-cream transition-colors">
             {t("create_event")}
           </Link>

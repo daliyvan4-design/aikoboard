@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyWebhookSignature, type WebhookPayload } from "@/lib/geniuspay";
-import { sendConfirmationEmail } from "@/lib/email";
+import { sendConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-webhook-signature") ?? "";
@@ -60,6 +60,14 @@ export async function POST(req: NextRequest) {
             reference: participant.reference,
             ticketNumber: participant.ticketNumber,
             type: participant.type as "badge" | "ticket",
+            amount: participant.montant,
+          }).catch(() => {});
+
+          sendAdminNotificationEmail({
+            type: "payment_received",
+            eventName: participant.event.nom,
+            participantName: `${participant.prenom} ${participant.nom}`,
+            reference: participant.reference,
             amount: participant.montant,
           }).catch(() => {});
         }

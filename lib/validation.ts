@@ -32,3 +32,27 @@ export const commandeSchema = z.object({
 });
 
 export type CommandeInput = z.infer<typeof commandeSchema>;
+
+export const participantSchema = z.object({
+  prenom: z.string().min(1).max(100),
+  nom: z.string().min(1).max(100),
+  email: z.string().email().max(255),
+  telephone: z.string().min(5).max(30),
+  organisation: z.string().max(200).optional(),
+  type: z.enum(["badge", "ticket"]).optional(),
+  statut: z.enum(["confirme", "pending", "annule"]).optional(),
+  montant: z.number().min(0).optional(),
+  paymentRef: z.string().optional(),
+  residenceTarifId: z.string().nullable().optional(),
+});
+
+export type ParticipantInput = z.infer<typeof participantSchema>;
+
+export const adminUserSchema = z.object({
+  email: z.string().email().max(255),
+  nom: z.string().min(1).max(100),
+  password: z.string().min(6).max(128),
+  role: z.enum(["ADMIN", "SUPERVISEUR", "CONCIERGE", "AGENT_INSTITUTIONNEL", "SCANNER"]).optional(),
+});
+
+export type AdminUserInput = z.infer<typeof adminUserSchema>;

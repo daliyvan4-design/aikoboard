@@ -6,6 +6,7 @@
     "admin": "الإدارة"
   },
   "header": {
+    "events": "الفعاليات",
     "create_event": "إنشاء فعالية",
     "participate": "المشاركة",
     "pricing": "الأسعار"
@@ -674,5 +675,25 @@
     "directions": "عرض الاتجاهات",
     "persons": "شخص/أشخاص",
     "night": "ليلة"
+  },
+  "events": {
+    "eyebrow": "الفعاليات",
+    "title": "جميع الفعاليات",
+    "subtitle": "مؤتمرات، حفلات، هاكاثونات — اكتشف الفعاليات القادمة في أبيدجان وساحل العاج.",
+    "search_placeholder": "ابحث عن فعالية أو مدينة…",
+    "filter_all": "الكل",
+    "filter_conference": "مؤتمرات",
+    "filter_concert": "حفلات",
+    "filter_hackathon": "هاكاثونات",
+    "upcoming": "القادمة",
+    "past": "الماضية",
+    "no_events": "لا توجد فعاليات حالياً.",
+    "registered": "مسجلين",
+    "participants": "مشاركين",
+    "register": "تسجيل",
+    "ended": "انتهى",
+    "type_conference": "مؤتمر",
+    "type_concert": "حفلة",
+    "type_hackathon": "هاكاثون"
   }
 }

@@ -6,6 +6,7 @@
     "admin": "Admin"
   },
   "header": {
+    "events": "Events",
     "create_event": "Create an event",
     "participate": "Attend",
     "pricing": "Pricing"
@@ -674,5 +675,25 @@
     "directions": "Get directions",
     "persons": "person(s)",
     "night": "night"
+  },
+  "events": {
+    "eyebrow": "Events",
+    "title": "All events",
+    "subtitle": "Conferences, concerts, hackathons — discover upcoming events in Abidjan and Côte d'Ivoire.",
+    "search_placeholder": "Search an event or city…",
+    "filter_all": "All",
+    "filter_conference": "Conferences",
+    "filter_concert": "Concerts",
+    "filter_hackathon": "Hackathons",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "no_events": "No events at the moment.",
+    "registered": "registered",
+    "participants": "participants",
+    "register": "Register",
+    "ended": "Ended",
+    "type_conference": "Conference",
+    "type_concert": "Concert",
+    "type_hackathon": "Hackathon"
   }
 }

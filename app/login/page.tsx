@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AikoLogo } from "@/components/brand/aiko-logo";
 
 export default function LoginPage() {
@@ -87,6 +88,12 @@ export default function LoginPage() {
           >
             {loading ? "Connexion…" : "Se connecter"}
           </button>
+
+          <div className="mt-4 text-center">
+            <Link href="/forgot-password" className="text-[12px] text-cream/40 hover:text-gold transition-colors">
+              Mot de passe oublié ?
+            </Link>
+          </div>
         </form>
 
         <p className="text-center text-cream/30 text-[11px] mt-6">

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendConfirmationEmail } from "@/lib/email";
+import { sendConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireAnyAdmin } from "@/lib/admin-auth";
+import { participantSchema } from "@/lib/validation";
 
 function genRef() {
   return `AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -30,7 +31,12 @@ export async function POST(
       return NextResponse.json({ error: "Evenement introuvable" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const raw = await req.json();
+    const parsed = participantSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Données invalides", details: parsed.error.flatten().fieldErrors }, { status: 400 });
+    }
+    const body = parsed.data;
     const ticketNumber = event._count.participants + 1;
     const statut = body.statut ?? "confirme";
 
@@ -65,6 +71,14 @@ export async function POST(
         amount: body.montant ?? 0,
       }).catch(() => {});
     }
+
+    sendAdminNotificationEmail({
+      type: "new_registration",
+      eventName: event.nom,
+      participantName: `${body.prenom} ${body.nom}`,
+      reference: participant.reference,
+      amount: body.montant ?? 0,
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,

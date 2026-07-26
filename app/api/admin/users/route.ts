@@ -4,6 +4,8 @@ import { requireRole } from "@/lib/admin-auth";
 import { canManageRole } from "@/lib/roles";
 import bcrypt from "bcryptjs";
 import { Role } from "@prisma/client";
+import { adminUserSchema } from "@/lib/validation";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function GET() {
   const { session, error } = await requireRole("ADMIN", "SUPERVISEUR");
@@ -25,7 +27,13 @@ export async function POST(request: NextRequest) {
   const { session, error } = await requireRole("ADMIN", "SUPERVISEUR");
   if (error) return error;
 
-  const { email, nom, password, role } = await request.json();
+  const raw = await request.json();
+  const parsed = adminUserSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Données invalides", details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
+
+  const { email, nom, password, role } = parsed.data;
   const targetRole = (role as Role) || "CONCIERGE";
 
   if (!canManageRole(session!.user.role, targetRole)) {
@@ -37,6 +45,13 @@ export async function POST(request: NextRequest) {
   const user = await prisma.adminUser.create({
     data: { email, nom, passwordHash: hash, role: targetRole },
   });
+
+  sendWelcomeEmail({
+    to: email,
+    name: nom,
+    role: targetRole,
+    loginUrl: `${process.env.NEXTAUTH_URL || "https://aikoboard.com"}/login`,
+  }).catch(() => {});
 
   return NextResponse.json({ id: user.id, email: user.email, nom: user.nom, role: user.role }, { status: 201 });
 }

@@ -7,7 +7,11 @@ export const metadata: Metadata = {
     "AIKO Board — Plateforme de création et gestion d'événements. Badges, tickets et accréditations avec QR code.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/icon-192.png",
   },
   metadataBase: new URL("https://aikoboard.com"),
   openGraph: {

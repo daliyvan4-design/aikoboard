@@ -61,6 +61,17 @@ export function Footer() {
           <p className="text-[11px] text-cream/30">
             &copy; {year} AIKO Board. {t("rights")}
           </p>
+          <div className="flex items-center gap-4 text-[11px] text-cream/30">
+            <Link href={`/${locale}/mentions-legales`} className="hover:text-cream/60 transition-colors">
+              Mentions légales
+            </Link>
+            <Link href={`/${locale}/cgu`} className="hover:text-cream/60 transition-colors">
+              CGU
+            </Link>
+            <Link href={`/${locale}/confidentialite`} className="hover:text-cream/60 transition-colors">
+              Confidentialité
+            </Link>
+          </div>
           <p className="text-[11px] text-cream/30">
             {t("made_in")}
           </p>
