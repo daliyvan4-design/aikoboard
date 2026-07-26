@@ -4,15 +4,16 @@ import { requireRole } from "@/lib/admin-auth";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { error } = await requireRole("ADMIN");
   if (error) return error;
 
+  const { id } = await params;
   const body = await req.json();
 
   const event = await prisma.event.update({
-    where: { id: params.id },
+    where: { id },
     data: { statut: body.statut },
   });
 
@@ -21,13 +22,15 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { error } = await requireRole("ADMIN");
   if (error) return error;
 
+  const { id } = await params;
+
   await prisma.event.update({
-    where: { id: params.id },
+    where: { id },
     data: { statut: "supprime" },
   });
 

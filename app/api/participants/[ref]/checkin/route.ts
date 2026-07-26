@@ -4,13 +4,14 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { ref: string } },
+  { params }: { params: Promise<{ ref: string }> },
 ) {
   try {
     const blocked = await rateLimit(req, "checkin", 20, "60 s");
     if (blocked) return blocked;
+    const { ref } = await params;
     const participant = await prisma.participant.findUnique({
-      where: { reference: params.ref },
+      where: { reference: ref },
       include: {
         event: {
           select: {
@@ -64,7 +65,7 @@ export async function POST(
     }
 
     const updated = await prisma.participant.update({
-      where: { reference: params.ref },
+      where: { reference: ref },
       data: {
         checkedIn: true,
         checkedInAt: new Date(),

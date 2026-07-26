@@ -3,7 +3,7 @@ import { getPayment, isGeniusPayConfigured } from "@/lib/geniuspay";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { reference: string } },
+  { params }: { params: Promise<{ reference: string }> },
 ) {
   if (!isGeniusPayConfigured()) {
     return NextResponse.json(
@@ -13,7 +13,8 @@ export async function GET(
   }
 
   try {
-    const payment = await getPayment(params.reference);
+    const { reference } = await params;
+    const payment = await getPayment(reference);
 
     return NextResponse.json({
       success: true,

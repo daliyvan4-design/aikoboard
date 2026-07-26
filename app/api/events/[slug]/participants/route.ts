@@ -16,14 +16,15 @@ function formatDateRange(start: Date, end: Date) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
     const blocked = await rateLimit(req, "participants", 5, "60 s");
     if (blocked) return blocked;
 
+    const { slug } = await params;
     const event = await prisma.event.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: { _count: { select: { participants: true } } },
     });
 
@@ -96,14 +97,15 @@ export async function POST(
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   const { error } = await requireAnyAdmin();
   if (error) return error;
 
   try {
+    const { slug } = await params;
     const event = await prisma.event.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
     });
 
     if (!event) {
