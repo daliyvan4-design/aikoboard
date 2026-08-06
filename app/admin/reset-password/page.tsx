@@ -20,7 +20,7 @@ function ResetForm() {
     return (
       <div className="bg-ink2 rounded-2xl p-8 border border-cream/10 text-center">
         <p className="text-cream/50 text-[14px] mb-4">Lien invalide ou expiré.</p>
-        <Link href="/forgot-password" className="text-gold text-[13px] font-medium hover:text-gold2">
+        <Link href="/admin/forgot-password" className="text-gold text-[13px] font-medium hover:text-gold2">
           Demander un nouveau lien
         </Link>
       </div>
@@ -70,7 +70,7 @@ function ResetForm() {
           Votre mot de passe a été réinitialisé avec succès.
         </p>
         <Link
-          href="/login"
+          href="/admin/login"
           className="inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-3 text-[14px] font-semibold btn-press"
         >
           Se connecter
@@ -131,7 +131,7 @@ function ResetForm() {
       </button>
 
       <div className="mt-4 text-center">
-        <Link href="/login" className="text-[12px] text-cream/40 hover:text-cream/60 inline-flex items-center gap-1">
+        <Link href="/admin/login" className="text-[12px] text-cream/40 hover:text-cream/60 inline-flex items-center gap-1">
           <ArrowLeft className="w-3 h-3" />
           Retour à la connexion
         </Link>

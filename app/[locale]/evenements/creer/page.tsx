@@ -152,7 +152,7 @@ export default function CreerPage() {
 
   if (step === 4) {
     const slug = eventSlug;
-    const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenement/${slug}`;
+    const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenements/${slug}`;
 
     return (
       <section className="animate-fade-up">
@@ -266,7 +266,7 @@ export default function CreerPage() {
               Mon dashboard organisateur
             </Link>
             <Link
-              href={`/${locale}/evenement/${slug}`}
+              href={`/${locale}/evenements/${slug}`}
               className="btn-press inline-flex items-center gap-2 bg-ink hover:bg-ink2 text-cream rounded-full px-6 py-3 text-[14px] font-medium"
             >
               <ExternalLink className="w-4 h-4" />

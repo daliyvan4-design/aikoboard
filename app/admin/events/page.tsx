@@ -116,7 +116,7 @@ export default function AdminEventsPage() {
 
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Link
-                    href={`/fr/evenement/${evt.slug}`}
+                    href={`/fr/evenements/${evt.slug}`}
                     target="_blank"
                     className="w-9 h-9 rounded-xl bg-cream2 border border-line flex items-center justify-center text-mute hover:text-ink transition-colors"
                     title="Page publique"

@@ -29,8 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const eventPages = events.flatMap((e) => [
-    { url: `${BASE}/fr/evenement/${e.slug}`, lastModified: e.updatedAt, changeFrequency: "daily" as const, priority: 0.8 },
-    { url: `${BASE}/en/evenement/${e.slug}`, lastModified: e.updatedAt, changeFrequency: "daily" as const, priority: 0.7 },
+    { url: `${BASE}/fr/evenements/${e.slug}`, lastModified: e.updatedAt, changeFrequency: "daily" as const, priority: 0.8 },
+    { url: `${BASE}/en/evenements/${e.slug}`, lastModified: e.updatedAt, changeFrequency: "daily" as const, priority: 0.7 },
   ]);
 
   const residencePages = residences.map((r) => ({

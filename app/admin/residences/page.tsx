@@ -208,6 +208,7 @@ export default function ResidencesPage() {
       const data = await res.json();
       if (data.success) {
         setShowForm(false);
+        if (!editId && data.id) setExpandedId(data.id);
         fetchResidences();
       }
     } catch {

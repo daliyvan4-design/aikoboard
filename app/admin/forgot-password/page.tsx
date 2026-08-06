@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
               Si un compte existe pour <strong className="text-cream/70">{email}</strong>, vous recevrez un lien de réinitialisation dans quelques instants.
             </p>
             <Link
-              href="/login"
+              href="/admin/login"
               className="inline-flex items-center gap-2 text-gold text-[13px] font-medium hover:text-gold2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <div className="mt-4 text-center">
-              <Link href="/login" className="text-[12px] text-cream/40 hover:text-cream/60 inline-flex items-center gap-1">
+              <Link href="/admin/login" className="text-[12px] text-cream/40 hover:text-cream/60 inline-flex items-center gap-1">
                 <ArrowLeft className="w-3 h-3" />
                 Retour à la connexion
               </Link>

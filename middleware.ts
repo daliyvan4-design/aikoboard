@@ -8,15 +8,16 @@ const intlMiddleware = createIntlMiddleware(routing);
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/admin")) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET || "aiko-dev-secret-change-in-prod" });
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  const authPages = ["/admin/login", "/admin/forgot-password", "/admin/reset-password"];
+  if (authPages.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  if (pathname === "/login") {
+  if (pathname.startsWith("/admin")) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET || "aiko-dev-secret-change-in-prod" });
+    if (!token) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
     return NextResponse.next();
   }
 

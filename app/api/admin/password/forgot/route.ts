@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   });
 
   const baseUrl = process.env.NEXTAUTH_URL || "https://aikoboard.com";
-  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+  const resetUrl = `${baseUrl}/admin/reset-password?token=${token}`;
 
   await sendPasswordResetEmail({
     to: user.email,

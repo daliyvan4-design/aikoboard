@@ -103,7 +103,7 @@ export default function OrganisateurDashboard() {
   const isConcert = event.type === "concert";
   const totalRevenue = event.participants.reduce((sum, p) => sum + p.montant, 0);
   const checkedInCount = event.participants.filter((p) => p.checkedIn).length;
-  const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenement/${event.slug}`;
+  const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenements/${event.slug}`;
 
   const filtered = event.participants.filter((p) => {
     if (!search) return true;

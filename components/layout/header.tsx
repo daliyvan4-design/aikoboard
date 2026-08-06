@@ -33,7 +33,7 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <Link
-            href={`/${locale}/creer`}
+            href={`/${locale}/evenements/creer`}
             className="hidden sm:inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-5 py-2 text-[12px] font-semibold btn-press"
           >
             {t("create_event")}

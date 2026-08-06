@@ -332,7 +332,22 @@ function SuccessContent() {
           </div>
         )}
 
-        {!eventSlug && (
+        {type === "reservation" && (
+          <div className="space-y-4 mb-8">
+            <p className="text-[15px] text-ink font-medium">
+              Votre reservation est confirmee. Notre equipe vous contactera sous 24h.
+            </p>
+            <Link
+              href={`/${locale}`}
+              className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold"
+            >
+              Retour a l&apos;accueil
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
+        {!eventSlug && type !== "reservation" && (
           <Link
             href={`/${locale}`}
             className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold"

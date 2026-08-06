@@ -88,7 +88,7 @@ export default function EventPage() {
   const locale = useLocale();
   const t = useTranslations("event.page");
   const ts = useTranslations("event.success");
-  const eventId = params.id as string;
+  const eventSlug = params.slug as string;
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,13 +112,13 @@ export default function EventPage() {
   const selectedTarif = hasLogement ? event!.residence!.tarifs.find((t) => t.id === selectedTarifId) : null;
 
   useEffect(() => {
-    fetch(`/api/events/${eventId}`)
+    fetch(`/api/events/${eventSlug}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.success) setEvent(d.data);
       })
       .finally(() => setLoading(false));
-  }, [eventId]);
+  }, [eventSlug]);
 
   if (loading) {
     return (

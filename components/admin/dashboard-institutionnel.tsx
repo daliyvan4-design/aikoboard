@@ -95,7 +95,7 @@ function EventBlock({ evt }: { evt: EventData }) {
               {evt.participants.length} participant{evt.participants.length > 1 ? "s" : ""}
             </span>
             <Link
-              href={`/fr/evenement/${evt.slug}`}
+              href={`/fr/evenements/${evt.slug}`}
               target="_blank"
               className="text-[11px] text-gold flex items-center gap-1 hover:underline"
             >

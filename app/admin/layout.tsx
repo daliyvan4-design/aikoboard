@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect("/login");
+    return <>{children}</>;
   }
 
   const pendingCount = await prisma.commande.count({

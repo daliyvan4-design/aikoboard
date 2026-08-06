@@ -12,7 +12,7 @@ interface Props {
   customerPhone?: string;
   eventSlug?: string;
   participantRef?: string;
-  type?: "event_creation" | "badge" | "ticket";
+  type?: "event_creation" | "badge" | "ticket" | "reservation";
   onBeforePay?: () => Promise<{ participantRef?: string; eventSlug?: string } | void>;
   onError?: (message: string) => void;
   disabled?: boolean;

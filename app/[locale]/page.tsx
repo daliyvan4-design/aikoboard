@@ -35,7 +35,7 @@ function EventCard({ evt, locale, variant, t }: { evt: EventItem; locale: string
   if (variant === "dark") {
     return (
       <Link
-        href={`/${locale}/evenement/${evt.slug}`}
+        href={`/${locale}/evenements/${evt.slug}`}
         className="bg-cream/[0.04] border border-cream/[0.08] rounded-2xl overflow-hidden hover:bg-cream/[0.08] hover:border-cream/[0.15] transition-all group"
       >
         <div className="relative h-40 bg-cream/[0.06]">
@@ -75,7 +75,7 @@ function EventCard({ evt, locale, variant, t }: { evt: EventItem; locale: string
 
   return (
     <Link
-      href={`/${locale}/evenement/${evt.slug}`}
+      href={`/${locale}/evenements/${evt.slug}`}
       className="bg-white border border-line rounded-2xl overflow-hidden hover:shadow-float transition-all group"
     >
       <div className="relative h-44 bg-cream2">
@@ -228,7 +228,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <Link
-                  href={`/${locale}/creer`}
+                  href={`/${locale}/evenements/creer`}
                   className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold"
                 >
                   {t("cta_create")} — 32 800 FCFA

@@ -119,7 +119,7 @@ export default function EvenementsPage() {
                   {upcoming.map((evt) => (
                     <Link
                       key={evt.slug}
-                      href={`/${locale}/evenement/${evt.slug}`}
+                      href={`/${locale}/evenements/${evt.slug}`}
                       className="bg-white border border-line rounded-2xl overflow-hidden hover:shadow-float transition-all group"
                     >
                       <div className="relative h-44 bg-cream2">
@@ -179,7 +179,7 @@ export default function EvenementsPage() {
                   {past.map((evt) => (
                     <Link
                       key={evt.slug}
-                      href={`/${locale}/evenement/${evt.slug}`}
+                      href={`/${locale}/evenements/${evt.slug}`}
                       className="bg-white border border-line rounded-2xl overflow-hidden group"
                     >
                       <div className="relative h-36 bg-cream2">

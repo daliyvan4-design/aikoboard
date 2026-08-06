@@ -54,7 +54,7 @@ describe("email utility", () => {
     const result = await sendPasswordResetEmail({
       to: "test@test.com",
       name: "Test",
-      resetUrl: "https://aikoboard.com/reset-password?token=abc",
+      resetUrl: "https://aikoboard.com/admin/reset-password?token=abc",
     });
     expect(result).toBeNull();
   });

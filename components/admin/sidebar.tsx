@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/commandes", icon: ClipboardList, label: "Commandes", badge: true, roles: ["ADMIN", "SUPERVISEUR"] },
   { href: "/admin/events", icon: CalendarDays, label: "Evenements", roles: ["ADMIN", "SUPERVISEUR", "AGENT_INSTITUTIONNEL"] },
   { href: "/admin/residences", icon: Building, label: "Residences", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/admin/tarifs", icon: Banknote, label: "Tarifs", roles: ["ADMIN"] },
+  { href: "/admin/tarifs", icon: Banknote, label: "Tarifs", roles: ["ADMIN", "CONCIERGE"] },
   { href: "/admin/voyageurs", icon: Users, label: "Voyageurs", roles: ["ADMIN", "SUPERVISEUR"] },
   { href: "/admin/chauffeurs", icon: CarFront, label: "Chauffeurs", roles: ["ADMIN", "SUPERVISEUR"] },
   { href: "/admin/rapports", icon: BarChart3, label: "Rapports", roles: ["ADMIN", "SUPERVISEUR"] },
@@ -139,7 +139,7 @@ export function Sidebar({ adminName, adminRole, userRole, pendingCount, open, on
               <p className="text-[10px] text-cream/50">{adminRole}</p>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => signOut({ callbackUrl: "/admin/login" })}
               className="text-cream/50 hover:text-cream"
             >
               <LogOut size={16} />

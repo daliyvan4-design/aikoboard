@@ -5,12 +5,10 @@ import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Check,
-  CreditCard,
-  Lock,
   ShieldCheck,
-  Smartphone,
   Ticket,
 } from "lucide-react";
+import { PaymentButton } from "@/components/payment/payment-button";
 import type { CartState, TravelerData } from "./wizard-shell";
 import type { ServiceGroups, ServiceItem } from "@/components/services/types";
 import { fmt } from "@/lib/utils";
@@ -114,8 +112,8 @@ export function StepRecap({
 }: StepRecapProps) {
   const t = useTranslations("s4");
   const [services, setServices] = useState<ServiceGroups | null>(null);
-  const [payMethod, setPayMethod] = useState<"card" | "momo">("card");
   const [cgvChecked, setCgvChecked] = useState(false);
+  const [payError, setPayError] = useState("");
   const [ref] = useState(genRef);
 
   useEffect(() => {
@@ -390,130 +388,25 @@ export function StepRecap({
               </div>
             </div>
 
-            {/* method tabs */}
-            <div className="mt-6 grid grid-cols-2 gap-2 text-[12px]">
-              <button
-                onClick={() => setPayMethod("card")}
-                className={`rounded-xl px-3 py-3 border flex items-center justify-center gap-2 ${
-                  payMethod === "card"
-                    ? "border-ink bg-cream2"
-                    : "border-line"
-                }`}
-              >
-                <CreditCard className="w-4 h-4" />
-                <span>{t("method.card")}</span>
-              </button>
-              <button
-                onClick={() => setPayMethod("momo")}
-                className={`rounded-xl px-3 py-3 border flex items-center justify-center gap-2 ${
-                  payMethod === "momo"
-                    ? "border-ink bg-cream2"
-                    : "border-line"
-                }`}
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>{t("method.momo")}</span>
-              </button>
+            {/* Total recap */}
+            <div className="mt-6 bg-cream2 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2 text-[13px] text-mute">
+                <span>{t("subtotal")}</span>
+                <span className="mono">{fmt(subtotal, currency)}</span>
+              </div>
+              <div className="flex items-center justify-between mb-2 text-[13px] text-mute">
+                <span>{t("vat")}</span>
+                <span className="mono">{fmt(tva, currency)}</span>
+              </div>
+              <div className="flex items-center justify-between mb-3 text-[13px] text-mute">
+                <span>{t("fee")}</span>
+                <span className="mono">{fmt(fee, currency)}</span>
+              </div>
+              <div className="border-t border-line pt-3 flex items-end justify-between">
+                <span className="text-[11px] uppercase tracking-wider text-mute">{t("total_ttc")}</span>
+                <span className="figure text-[28px] text-ink">{fmt(totalTTC, currency)}</span>
+              </div>
             </div>
-
-            {/* Card panel */}
-            {payMethod === "card" && (
-              <div className="mt-5 space-y-3">
-                <p className="text-[12px] text-gold2 font-medium text-center">
-                  Paiement disponible prochainement
-                </p>
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-mute mb-1.5">
-                    {t("card.number")}
-                  </label>
-                  <input
-                    disabled
-                    className="w-full bg-cream border border-line rounded-xl px-4 py-3 mono text-[14px] opacity-50 cursor-not-allowed"
-                    placeholder="4242 4242 4242 4242"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-mute mb-1.5">
-                      {t("card.exp")}
-                    </label>
-                    <input
-                      disabled
-                      className="w-full bg-cream border border-line rounded-xl px-4 py-3 mono text-[14px] opacity-50 cursor-not-allowed"
-                      placeholder="MM/YY"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-mute mb-1.5">
-                      {t("card.cvc")}
-                    </label>
-                    <input
-                      disabled
-                      className="w-full bg-cream border border-line rounded-xl px-4 py-3 mono text-[14px] opacity-50 cursor-not-allowed"
-                      placeholder="•••"
-                    />
-                  </div>
-                </div>
-                <button
-                  disabled
-                  className="w-full mt-2 inline-flex items-center justify-center gap-3 bg-ink text-cream rounded-full px-6 py-4 text-[15px] font-medium opacity-50 cursor-not-allowed"
-                >
-                  <Lock className="w-4 h-4" />
-                  <span>{t("card.pay")}</span>
-                  <span className="mono ml-1">{fmt(totalTTC, currency)}</span>
-                  <span className="text-[11px] mono text-cream/50 ml-3">
-                    {t("card.via")}
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {/* MoMo panel */}
-            {payMethod === "momo" && (
-              <div className="mt-5 space-y-3">
-                <p className="text-[12px] text-gold2 font-medium text-center">
-                  Paiement disponible prochainement
-                </p>
-                <p className="text-[12px] text-mute">{t("momo.op")}</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { name: "Orange", color: "bg-mining" },
-                    { name: "MTN", color: "bg-err" },
-                    { name: "Wave", color: "bg-[#1DA1F2]" },
-                    { name: "Moov", color: "bg-[#0066B3]" },
-                  ].map((op) => (
-                    <button
-                      key={op.name}
-                      disabled
-                      className="rounded-xl px-2 py-3 border border-line bg-cream flex flex-col items-center gap-1 text-[10px] font-semibold tracking-wider opacity-50 cursor-not-allowed"
-                    >
-                      <span
-                        className={`w-6 h-6 rounded-full ${op.color}`}
-                      />
-                      {op.name}
-                    </button>
-                  ))}
-                </div>
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-mute mb-1.5">
-                    {t("momo.num")}
-                  </label>
-                  <input
-                    disabled
-                    className="w-full bg-cream border border-line rounded-xl px-4 py-3 mono text-[14px] opacity-50 cursor-not-allowed"
-                    placeholder="+225 07 12 34 56 78"
-                  />
-                </div>
-                <button
-                  disabled
-                  className="w-full mt-2 inline-flex items-center justify-center gap-3 bg-ok text-cream rounded-full px-6 py-4 text-[15px] font-medium opacity-50 cursor-not-allowed"
-                >
-                  <Smartphone className="w-4 h-4" />
-                  <span>{t("momo.confirm")}</span>
-                  <span className="mono ml-1">{fmt(totalTTC, currency)}</span>
-                </button>
-              </div>
-            )}
 
             {/* CGV */}
             <label className="mt-5 flex items-start gap-3 cursor-pointer">
@@ -526,7 +419,7 @@ export function StepRecap({
               <span className="text-[12px] text-mute leading-snug">
                 {t.rich("cgv", {
                   link: (chunks) => (
-                    <a className="text-ink underline" href="#">
+                    <a className="text-ink underline" href="/fr/cgu">
                       {chunks}
                     </a>
                   ),
@@ -534,25 +427,88 @@ export function StepRecap({
               </span>
             </label>
 
-            {/* Confirm button (demo) */}
-            <button
-              onClick={() => onSubmit(ref)}
-              disabled={!cgvChecked}
-              className="w-full mt-5 inline-flex items-center justify-center gap-3 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-4 text-[15px] font-semibold btn-press disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Confirmer & obtenir mon badge
-            </button>
+            {payError && (
+              <div className="mt-3 bg-err/10 border border-err/20 text-err rounded-xl px-4 py-3 text-[13px]">
+                {payError}
+              </div>
+            )}
+
+            {/* GeniusPay payment */}
+            <div className="mt-5">
+              <PaymentButton
+                amount={totalTTC}
+                currency={currency as "XOF" | "EUR" | "USD"}
+                description={`Reservation AIKO — ${traveler.prenom} ${traveler.nom}`}
+                customerName={`${traveler.prenom} ${traveler.nom}`}
+                customerEmail={traveler.email}
+                customerPhone={`${traveler.indicatif}${traveler.telephone}`}
+                type="reservation"
+                onBeforePay={async () => {
+                  const cartLignes: { serviceId: string; tarifId?: string; quantite: number }[] = [];
+                  for (const [id, q] of Object.entries(cart.transport)) {
+                    cartLignes.push({ serviceId: id, quantite: q });
+                  }
+                  if (cart.hotel) {
+                    cartLignes.push({ serviceId: cart.hotel.id, quantite: cart.hotel.nights });
+                  }
+                  for (const id of Object.keys(cart.meals)) {
+                    cartLignes.push({ serviceId: id, quantite: cart.pax * (cart.hotel ? cart.hotel.nights : 1) });
+                  }
+                  const extrasArr = cart.extras instanceof Set ? Array.from(cart.extras) : [];
+                  for (const id of extrasArr) {
+                    cartLignes.push({ serviceId: id, quantite: 1 });
+                  }
+                  if (cartLignes.length === 0) return;
+
+                  try {
+                    const res = await fetch("/api/commandes", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        voyageur: {
+                          prenom: traveler.prenom,
+                          nom: traveler.nom,
+                          email: traveler.email,
+                          telephone: `${traveler.indicatif}${traveler.telephone}`,
+                          nationalite: traveler.nationalite,
+                          dateArrivee: traveler.dateArrivee,
+                          dateDepart: traveler.dateDepart,
+                          nombrePersonnes: traveler.nombrePersonnes,
+                          compagnie: traveler.compagnie || undefined,
+                          numeroVol: traveler.numeroVol || undefined,
+                          heureArrivee: traveler.flightTime || undefined,
+                          aeroport: traveler.aeroport || undefined,
+                          passeport: traveler.passeport || undefined,
+                          typeVisa: traveler.typeVisa || undefined,
+                          statutVisa: traveler.statutVisa || undefined,
+                          notes: traveler.notes || undefined,
+                        },
+                        lignes: cartLignes,
+                        devise: currency,
+                        langue: "fr",
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.reference) {
+                      return { participantRef: data.reference };
+                    }
+                  } catch {
+                    // continue to payment
+                  }
+                  return {};
+                }}
+                onError={setPayError}
+                disabled={!cgvChecked || isEmpty}
+                label={`Payer ${fmt(totalTTC, currency)} via GeniusPay`}
+              />
+            </div>
 
             {/* Security badges */}
             <div className="hr my-5" />
-            <div className="flex items-center justify-between text-[11px] text-mute">
+            <div className="flex items-center justify-center gap-4 text-[11px] text-mute">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-ok" />
                 <span>{t("secure")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                <span>{t("secure3d")}</span>
               </div>
             </div>
           </div>
