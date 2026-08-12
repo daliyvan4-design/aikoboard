@@ -11,7 +11,8 @@ import {
 import { rateLimit } from "@/lib/rate-limit";
 
 function genPayRef() {
-  return `PAY-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+  const bytes = require("crypto").randomBytes(6);
+  return `PAY-${bytes.toString("hex").toUpperCase()}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -26,6 +27,14 @@ export async function POST(req: NextRequest) {
     const blocked = await rateLimit(req, "payments", 3, "60 s");
     if (blocked) return blocked;
 
+    const idempotencyKey = req.headers.get("x-idempotency-key");
+    if (idempotencyKey) {
+      const existing = await prisma.payment.findFirst({ where: { reference: idempotencyKey } });
+      if (existing) {
+        return NextResponse.json({ success: true, reference: existing.reference, duplicate: true });
+      }
+    }
+
     const body = (await req.json()) as {
       amount: number;
       currency?: string;
@@ -38,11 +47,27 @@ export async function POST(req: NextRequest) {
       type?: string;
     };
 
-    if (!body.amount || body.amount < 200) {
+    if (!body.amount || typeof body.amount !== "number" || body.amount < 200) {
       return NextResponse.json(
         { error: "Montant minimum : 200 XOF" },
         { status: 400 },
       );
+    }
+
+    if (body.event_slug && body.participant_ref) {
+      const evt = await prisma.event.findUnique({
+        where: { slug: body.event_slug },
+        select: { prixBadge: true, prixTicket: true, badgePayant: true, ticketPayant: true },
+      });
+      if (evt) {
+        const expectedPrice = evt.badgePayant ? evt.prixBadge : evt.ticketPayant ? evt.prixTicket : 0;
+        if (expectedPrice > 0 && body.amount < expectedPrice) {
+          return NextResponse.json(
+            { error: `Montant insuffisant. Prix attendu : ${expectedPrice} XOF` },
+            { status: 400 },
+          );
+        }
+      }
     }
 
     const origin = req.headers.get("origin") ?? "";
@@ -117,8 +142,7 @@ export async function POST(req: NextRequest) {
       status: payment.status,
     });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Erreur de paiement";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[payments] error:", err);
+    return NextResponse.json({ error: "Erreur de paiement" }, { status: 500 });
   }
 }

@@ -8,7 +8,19 @@ function slugify(text: string) {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
-    .substring(0, 60);
+    .substring(0, 80);
+}
+
+async function uniqueSlug(base: string): Promise<string> {
+  const existing = await prisma.event.findUnique({ where: { slug: base } });
+  if (!existing) return base;
+  for (let i = 2; i <= 50; i++) {
+    const candidate = `${base}-${i}`;
+    const found = await prisma.event.findUnique({ where: { slug: candidate } });
+    if (!found) return candidate;
+  }
+  const bytes = require("crypto").randomBytes(3);
+  return `${base}-${bytes.toString("hex")}`;
 }
 
 const ALLOWED_TYPES = ["conference", "concert", "seminaire", "gala", "forum", "salon", "festival", "autre"];
@@ -51,7 +63,7 @@ export async function POST(req: NextRequest) {
     const prixTicket = Math.max(0, parseFloat(body.prixTicket) || 0);
 
     const base = slugify(body.nom);
-    const slug = `${base}-${Date.now().toString(36)}`;
+    const slug = await uniqueSlug(base);
 
     const event = await prisma.event.create({
       data: {

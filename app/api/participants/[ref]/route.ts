@@ -9,7 +9,16 @@ export async function GET(
     const { ref } = await params;
     const participant = await prisma.participant.findUnique({
       where: { reference: ref },
-      include: {
+      select: {
+        reference: true,
+        ticketNumber: true,
+        prenom: true,
+        nom: true,
+        email: true,
+        organisation: true,
+        type: true,
+        statut: true,
+        montant: true,
         event: {
           select: {
             slug: true,
@@ -35,8 +44,7 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: participant });
-  } catch (err) {
-    console.error("[participants] get error:", err);
+  } catch {
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

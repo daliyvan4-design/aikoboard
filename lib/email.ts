@@ -10,6 +10,10 @@ function getResend(): Resend | null {
 
 const FROM = process.env.EMAIL_FROM ?? "AIKO Board <contact@aikoboard.com>";
 
+function esc(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 interface SendConfirmationInput {
   to: string;
   participantName: string;
@@ -55,7 +59,7 @@ export async function sendConfirmationEmail(input: SendConfirmationInput) {
         Inscription confirmee !
       </p>
       <p style="font-size:14px;color:#8A8680;margin:0 0 24px;line-height:1.5">
-        ${input.participantName}, votre inscription pour <strong style="color:#0A0A0A">${input.eventName}</strong> est confirmee.
+        ${esc(input.participantName)}, votre inscription pour <strong style="color:#0A0A0A">${esc(input.eventName)}</strong> est confirmee.
       </p>
 
       <!-- Info card -->
@@ -63,19 +67,19 @@ export async function sendConfirmationEmail(input: SendConfirmationInput) {
         <table width="100%" style="font-size:13px;color:#0A0A0A">
           <tr>
             <td style="padding:4px 0;color:#8A8680;width:100px">Evenement</td>
-            <td style="padding:4px 0;font-weight:600">${input.eventName}</td>
+            <td style="padding:4px 0;font-weight:600">${esc(String(input.eventName))}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Date</td>
-            <td style="padding:4px 0">${input.eventDate}</td>
+            <td style="padding:4px 0">${esc(String(input.eventDate))}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Lieu</td>
-            <td style="padding:4px 0">${input.eventLieu}</td>
+            <td style="padding:4px 0">${esc(input.eventLieu)}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Reference</td>
-            <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${input.reference}</td>
+            <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${esc(input.reference)}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">${ticketLabel} N°</td>
@@ -156,22 +160,22 @@ export async function sendReminderEmail(input: SendReminderInput) {
         C'est demain !
       </p>
       <p style="font-size:14px;color:#8A8680;margin:0 0 24px;line-height:1.5">
-        ${input.participantName}, <strong style="color:#0A0A0A">${input.eventName}</strong> commence demain.
+        ${esc(input.participantName)}, <strong style="color:#0A0A0A">${esc(input.eventName)}</strong> commence demain.
       </p>
 
       <div style="background:#F3F2EE;border-radius:12px;padding:20px;margin-bottom:24px">
         <table width="100%" style="font-size:13px;color:#0A0A0A">
           <tr>
             <td style="padding:4px 0;color:#8A8680;width:100px">Date</td>
-            <td style="padding:4px 0;font-weight:600">${input.eventDate}</td>
+            <td style="padding:4px 0;font-weight:600">${esc(String(input.eventDate))}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Lieu</td>
-            <td style="padding:4px 0">${input.eventLieu}</td>
+            <td style="padding:4px 0">${esc(input.eventLieu)}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Reference</td>
-            <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${input.reference}</td>
+            <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${esc(input.reference)}</td>
           </tr>
         </table>
       </div>
@@ -238,7 +242,7 @@ export async function sendPasswordResetEmail(input: SendPasswordResetInput) {
         Reinitialisation du mot de passe
       </p>
       <p style="font-size:14px;color:#8A8680;margin:0 0 24px;line-height:1.5">
-        ${input.name}, vous avez demande la reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.
+        ${esc(input.name)}, vous avez demande la reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.
       </p>
       <div style="text-align:center;margin:24px 0">
         <a href="${input.resetUrl}" style="display:inline-block;background:#C8A951;color:#0A0A0A;font-weight:600;font-size:14px;padding:14px 32px;border-radius:999px;text-decoration:none">
@@ -315,7 +319,7 @@ export async function sendWelcomeEmail(input: SendWelcomeInput) {
         Bienvenue sur AIKO Board
       </p>
       <p style="font-size:14px;color:#8A8680;margin:0 0 24px;line-height:1.5">
-        ${input.name}, votre compte <strong style="color:#0A0A0A">${roleLabels[input.role] || input.role}</strong> a ete cree avec succes.
+        ${esc(input.name)}, votre compte <strong style="color:#0A0A0A">${esc(roleLabels[input.role] || input.role)}</strong> a ete cree avec succes.
       </p>
       <div style="background:#F3F2EE;border-radius:12px;padding:20px;margin-bottom:24px">
         <table width="100%" style="font-size:13px;color:#0A0A0A">
@@ -407,15 +411,15 @@ export async function sendAdminNotificationEmail(input: SendAdminNotificationInp
         <table width="100%" style="font-size:13px;color:#0A0A0A">
           <tr>
             <td style="padding:4px 0;color:#8A8680;width:110px">Evenement</td>
-            <td style="padding:4px 0;font-weight:600">${input.eventName}</td>
+            <td style="padding:4px 0;font-weight:600">${esc(String(input.eventName))}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Participant</td>
-            <td style="padding:4px 0">${input.participantName}</td>
+            <td style="padding:4px 0">${esc(input.participantName)}</td>
           </tr>
           <tr>
             <td style="padding:4px 0;color:#8A8680">Reference</td>
-            <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${input.reference}</td>
+            <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${esc(input.reference)}</td>
           </tr>
           ${input.amount && input.amount > 0 ? `
           <tr>

@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const payload = JSON.parse(rawBody) as WebhookPayload;
+  let payload: WebhookPayload;
+  try {
+    payload = JSON.parse(rawBody) as WebhookPayload;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
   switch (event) {
     case "payment.success": {

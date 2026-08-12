@@ -14,6 +14,14 @@ export async function GET(
         participants: {
           orderBy: { createdAt: "desc" },
           take: 50,
+          select: {
+            prenom: true,
+            nom: true,
+            organisation: true,
+            type: true,
+            checkedIn: true,
+            ticketNumber: true,
+          },
         },
         residence: {
           include: {
@@ -29,8 +37,7 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: event });
-  } catch (err) {
-    console.error("[events] get error:", err);
+  } catch {
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

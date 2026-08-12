@@ -4,8 +4,8 @@ import { commandeSchema } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
 
 function generateReference(): string {
-  const hex = Math.random().toString(16).substring(2, 6).toUpperCase();
-  return `AIKO-26-${hex}`;
+  const bytes = require("crypto").randomBytes(4);
+  return `AIKO-${bytes.toString("hex").toUpperCase()}`;
 }
 
 export async function POST(request: NextRequest) {
