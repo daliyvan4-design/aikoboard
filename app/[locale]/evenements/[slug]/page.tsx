@@ -353,8 +353,14 @@ export default function EventPage() {
             </button>
           </div>
 
-          <div className="mt-12 text-center">
-            <Link href={`/${locale}`} className="text-[14px] text-gold hover:text-gold2 font-medium">
+          <div className="mt-8 text-center space-y-3">
+            <p className="text-[12px] text-mute">
+              Perdu votre QR code ?{" "}
+              <Link href={`/${locale}/mon-qr`} className="text-gold hover:text-gold2 font-medium underline underline-offset-2">
+                Retrouvez-le ici
+              </Link>
+            </p>
+            <Link href={`/${locale}`} className="text-[14px] text-gold hover:text-gold2 font-medium block">
               ← Retour
             </Link>
           </div>

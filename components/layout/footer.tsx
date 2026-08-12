@@ -40,6 +40,11 @@ export function Footer() {
                   {t("services")}
                 </Link>
               </li>
+              <li>
+                <Link href={`/${locale}/mon-qr`} className="hover:text-cream transition-colors">
+                  Retrouver mon QR code
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Camera,
   Printer,
+  Keyboard,
 } from "lucide-react";
 import { generateSinglePvcBadge } from "@/lib/generate-pvc-badge-pdf";
 
@@ -66,6 +67,8 @@ export default function ScanPage() {
   const [totalCheckedIn, setTotalCheckedIn] = useState(0);
   const [cameraError, setCameraError] = useState("");
   const [printing, setPrinting] = useState(false);
+  const [manualRef, setManualRef] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrRef = useRef<unknown>(null);
   const processingRef = useRef(false);
@@ -349,6 +352,40 @@ export default function ScanPage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Manual reference entry */}
+        <div className="mb-6">
+          <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Keyboard className="w-3.5 h-3.5" />
+            Saisie manuelle
+          </p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const trimmed = manualRef.trim().toUpperCase();
+              if (!trimmed) return;
+              setManualLoading(true);
+              await handleQrData(trimmed);
+              setManualLoading(false);
+            }}
+            className="flex gap-2"
+          >
+            <input
+              value={manualRef}
+              onChange={(e) => setManualRef(e.target.value)}
+              placeholder="AIKO-XXXXXX"
+              className="flex-1 bg-cream/[0.06] border border-cream/[0.12] rounded-xl px-4 py-3 text-[14px] font-mono text-cream uppercase placeholder:text-cream/20"
+            />
+            <button
+              type="submit"
+              disabled={manualLoading || !manualRef.trim()}
+              className="bg-gold hover:bg-gold2 text-ink rounded-xl px-5 py-3 text-[13px] font-semibold disabled:opacity-40 flex items-center gap-1.5"
+            >
+              {manualLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanLine className="w-4 h-4" />}
+              Verifier
+            </button>
+          </form>
         </div>
 
         {/* Result card */}
