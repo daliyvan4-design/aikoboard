@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
 
+function escapeCSV(val: string | number | null | undefined): string {
+  const str = String(val ?? "");
+  const escaped = str.replace(/"/g, '""');
+  if (/^[=+\-@\t\r]/.test(escaped)) return `"'${escaped}"`;
+  return `"${escaped}"`;
+}
+
 export async function GET(request: NextRequest) {
   const { error } = await requireRole("ADMIN", "SUPERVISEUR");
   if (error) return error;
@@ -9,7 +16,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") || "";
 
-  const where: any = {};
+  const where: Record<string, string> = {};
   if (status) where.statut = status;
 
   const commandes = await prisma.commande.findMany({
@@ -17,7 +24,11 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  const header = "Référence,Prénom,Nom,Email,Téléphone,Nationalité,Arrivée,Départ,Personnes,Montant,Devise,Statut\n";
+  const sep = ";";
+  const bom = "﻿";
+  const header = ["Référence", "Prénom", "Nom", "Email", "Téléphone", "Nationalité", "Arrivée", "Départ", "Personnes", "Montant", "Devise", "Statut"]
+    .map(escapeCSV).join(sep);
+
   const rows = commandes.map((c) =>
     [
       c.reference,
@@ -32,12 +43,12 @@ export async function GET(request: NextRequest) {
       c.montantTotal,
       c.devise,
       c.statut,
-    ].join(",")
-  ).join("\n");
+    ].map(escapeCSV).join(sep)
+  ).join("\r\n");
 
-  return new NextResponse(header + rows, {
+  return new NextResponse(bom + header + "\r\n" + rows, {
     headers: {
-      "Content-Type": "text/csv",
+      "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename=commandes-aiko-${new Date().toISOString().split("T")[0]}.csv`,
     },
   });

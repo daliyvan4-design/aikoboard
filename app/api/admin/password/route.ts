@@ -8,6 +8,14 @@ export async function PATCH(request: NextRequest) {
   if (error) return error;
 
   const { currentPassword, newPassword } = await request.json();
+
+  if (!currentPassword || typeof currentPassword !== "string") {
+    return NextResponse.json({ error: "Mot de passe actuel requis" }, { status: 400 });
+  }
+  if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
+    return NextResponse.json({ error: "Le nouveau mot de passe doit faire au moins 6 caracteres" }, { status: 400 });
+  }
+
   const userId = session!.user.id;
 
   const user = await prisma.adminUser.findUnique({ where: { id: userId } });

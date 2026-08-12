@@ -8,7 +8,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const { id } = await params;
   const body = await request.json();
-  const chauffeur = await prisma.chauffeur.update({ where: { id }, data: body });
+
+  const data: Record<string, unknown> = {};
+  if (typeof body.nom === "string") data.nom = body.nom.trim().substring(0, 100);
+  if (typeof body.telephone === "string") data.telephone = body.telephone.trim().substring(0, 30);
+  if (typeof body.vehicule === "string") data.vehicule = body.vehicule.trim().substring(0, 100);
+  if (typeof body.immatriculation === "string") data.immatriculation = body.immatriculation.trim().substring(0, 20);
+  if (typeof body.statut === "string" && ["actif", "inactif"].includes(body.statut)) data.statut = body.statut;
+
+  const chauffeur = await prisma.chauffeur.update({ where: { id }, data });
   return NextResponse.json(chauffeur);
 }
 

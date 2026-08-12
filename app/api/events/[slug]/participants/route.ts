@@ -39,7 +39,9 @@ export async function POST(
     }
     const body = parsed.data;
     const ticketNumber = event._count.participants + 1;
-    const statut = body.statut ?? "confirme";
+    const isBadge = (body.type ?? (event.type === "concert" ? "ticket" : "badge")) === "badge";
+    const isPaid = (isBadge && event.badgePayant) || (!isBadge && event.ticketPayant);
+    const statut = isPaid ? "pending" : "confirme";
 
     const participant = await prisma.participant.create({
       data: {

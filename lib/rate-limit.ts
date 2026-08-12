@@ -31,6 +31,34 @@ function getLimiter(name: string, requests: number, window: string): Ratelimit |
   return limiters[key];
 }
 
+const memoryStore = new Map<string, { count: number; resetAt: number }>();
+
+function parseWindowMs(window: string): number {
+  const match = window.match(/^(\d+)\s*(s|m|h|d)$/);
+  if (!match) return 60_000;
+  const n = parseInt(match[1]);
+  const unit = match[2];
+  if (unit === "s") return n * 1000;
+  if (unit === "m") return n * 60_000;
+  if (unit === "h") return n * 3_600_000;
+  return n * 86_400_000;
+}
+
+function memoryRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = memoryStore.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    memoryStore.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (entry.count >= maxRequests) return false;
+
+  entry.count++;
+  return true;
+}
+
 function getClientIp(req: NextRequest): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -45,28 +73,37 @@ export async function rateLimit(
   requests: number = 10,
   window: string = "60 s",
 ): Promise<NextResponse | null> {
-  const limiter = getLimiter(name, requests, window);
-  if (!limiter) return null;
-
   const ip = getClientIp(req);
+  const limiter = getLimiter(name, requests, window);
 
-  try {
-    const { success, remaining, reset } = await limiter.limit(ip);
-
-    if (!success) {
-      return NextResponse.json(
-        { error: "Trop de requetes. Reessayez dans quelques instants." },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Remaining": String(remaining),
-            "X-RateLimit-Reset": String(reset),
+  if (limiter) {
+    try {
+      const { success, remaining, reset } = await limiter.limit(ip);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Trop de requetes. Reessayez dans quelques instants." },
+          {
+            status: 429,
+            headers: {
+              "X-RateLimit-Remaining": String(remaining),
+              "X-RateLimit-Reset": String(reset),
+            },
           },
-        },
-      );
+        );
+      }
+      return null;
+    } catch {
+      // Redis unavailable — fall through to in-memory limiter
     }
-  } catch {
-    // Redis unavailable — allow request through
+  }
+
+  const windowMs = parseWindowMs(window);
+  const allowed = memoryRateLimit(`${name}:${ip}`, requests, windowMs);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Trop de requetes. Reessayez dans quelques instants." },
+      { status: 429 },
+    );
   }
 
   return null;

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireAnyAdmin } from "@/lib/admin-auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ ref: string }> },
 ) {
   try {
+    const { error: authError } = await requireAnyAdmin();
+    if (authError) return authError;
+
     const blocked = await rateLimit(req, "checkin", 20, "60 s");
     if (blocked) return blocked;
     const { ref } = await params;

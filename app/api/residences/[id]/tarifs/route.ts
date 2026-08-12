@@ -56,16 +56,22 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error } = await requireRole("ADMIN", "SUPERVISEUR");
   if (error) return error;
 
   try {
+    const { id } = await params;
     const { searchParams } = new URL(req.url);
     const tarifId = searchParams.get("tarifId");
 
     if (!tarifId) {
       return NextResponse.json({ error: "tarifId required" }, { status: 400 });
+    }
+
+    const tarif = await prisma.residenceTarif.findFirst({ where: { id: tarifId, residenceId: id } });
+    if (!tarif) {
+      return NextResponse.json({ error: "Tarif introuvable pour cette residence" }, { status: 404 });
     }
 
     await prisma.residenceTarif.delete({ where: { id: tarifId } });

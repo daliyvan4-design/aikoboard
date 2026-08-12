@@ -35,16 +35,22 @@ export async function POST(
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error } = await requireRole("ADMIN", "SUPERVISEUR");
   if (error) return error;
 
   try {
+    const { id } = await params;
     const { searchParams } = new URL(req.url);
     const imageId = searchParams.get("imageId");
 
     if (!imageId) {
       return NextResponse.json({ error: "imageId required" }, { status: 400 });
+    }
+
+    const image = await prisma.residenceImage.findFirst({ where: { id: imageId, residenceId: id } });
+    if (!image) {
+      return NextResponse.json({ error: "Image introuvable pour cette residence" }, { status: 404 });
     }
 
     await prisma.residenceImage.delete({ where: { id: imageId } });
