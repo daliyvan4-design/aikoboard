@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import {
@@ -18,6 +18,7 @@ import {
   Keyboard,
 } from "lucide-react";
 import { generateSinglePvcBadge } from "@/lib/generate-pvc-badge-pdf";
+import { loadManageToken, storeManageToken } from "@/lib/manage-token";
 
 interface ScanResult {
   status: "success" | "error" | "warning";
@@ -57,10 +58,16 @@ interface EventInfo {
   _count: { participants: number };
 }
 
-export default function ScanPage() {
+function ScanPageContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const slug = params.slug as string;
+
+  // Token de gestion : permet a l'organisateur de scanner sans compte admin.
+  // Absent, l'API retombe sur la session admin AIKO.
+  const urlToken = searchParams.get("token") ?? "";
+  const [manageToken, setManageToken] = useState(urlToken);
 
   const [event, setEvent] = useState<EventInfo | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -74,6 +81,15 @@ export default function ScanPage() {
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrRef = useRef<unknown>(null);
   const processingRef = useRef(false);
+
+  useEffect(() => {
+    if (urlToken) {
+      storeManageToken(slug, urlToken);
+      return;
+    }
+    const stored = loadManageToken(slug);
+    if (stored) setManageToken(stored);
+  }, [slug, urlToken]);
 
   useEffect(() => {
     fetch(`/api/events/${slug}`)
@@ -112,7 +128,10 @@ export default function ScanPage() {
     }
 
     try {
-      const res = await fetch(`/api/participants/${ref}/checkin`, {
+      const query = manageToken
+        ? `?token=${encodeURIComponent(manageToken)}&slug=${encodeURIComponent(slug)}`
+        : "";
+      const res = await fetch(`/api/participants/${ref}/checkin${query}`, {
         method: "POST",
       });
       const data = await res.json();
@@ -159,7 +178,7 @@ export default function ScanPage() {
     }
 
     processingRef.current = false;
-  }, []);
+  }, [manageToken, slug]);
 
   const handlePrintBadge = async () => {
     if (!result?.participant || !event) return;
@@ -487,5 +506,19 @@ export default function ScanPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function ScanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+        </div>
+      }
+    >
+      <ScanPageContent />
+    </Suspense>
   );
 }

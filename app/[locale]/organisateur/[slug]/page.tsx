@@ -73,6 +73,7 @@ function OrganisateurDashboardContent() {
   const [event, setEvent] = useState<EventData | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -82,6 +83,7 @@ function OrganisateurDashboardContent() {
     const urlToken = searchParams.get("token") ?? "";
     if (urlToken) storeManageToken(slug, urlToken);
     const token = urlToken || loadManageToken(slug);
+    setToken(token);
 
     const loadEvent = async () => {
       try {
@@ -193,7 +195,11 @@ function OrganisateurDashboardContent() {
 
           <div className="mt-8 pt-6 border-t border-cream/10 flex flex-wrap gap-3">
             <Link
-              href={`/${locale}/scan/${event.slug}`}
+              href={
+                token
+                  ? `/${locale}/scan/${event.slug}?token=${encodeURIComponent(token)}`
+                  : `/${locale}/scan/${event.slug}`
+              }
               className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-3.5 text-[14px] font-semibold"
             >
               <ScanLine className="w-5 h-5" />
