@@ -72,8 +72,13 @@ export async function rateLimit(
   name: string,
   requests: number = 10,
   window: string = "60 s",
+  /**
+   * Identifiant du quota. Par défaut l'IP ; pour une route authentifiée on
+   * passe l'identifiant du compte, plus juste derrière un NAT partagé.
+   */
+  identifier?: string,
 ): Promise<NextResponse | null> {
-  const ip = getClientIp(req);
+  const ip = identifier || getClientIp(req);
   const limiter = getLimiter(name, requests, window);
 
   if (limiter) {

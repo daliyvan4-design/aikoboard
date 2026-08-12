@@ -50,7 +50,7 @@ export default function VoyageursPage() {
               <tr>
                 <th className="text-left font-medium px-5 py-3">Voyageur</th>
                 <th className="text-left font-medium px-5 py-3">Email</th>
-                <th className="text-left font-medium px-5 py-3">Téléphone</th>
+                <th className="text-left font-medium px-5 py-3">Telephone</th>
                 <th className="text-left font-medium px-5 py-3">Nationalité</th>
                 <th className="text-right font-medium px-5 py-3">Commandes</th>
                 <th className="text-right font-medium px-5 py-3">Montant total</th>

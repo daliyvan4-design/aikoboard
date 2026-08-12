@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
 import bcrypt from "bcryptjs";
+import { MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 export async function PATCH(request: NextRequest) {
   const { session, error } = await requireRole("ADMIN", "SUPERVISEUR", "CONCIERGE");
@@ -12,8 +13,8 @@ export async function PATCH(request: NextRequest) {
   if (!currentPassword || typeof currentPassword !== "string") {
     return NextResponse.json({ error: "Mot de passe actuel requis" }, { status: 400 });
   }
-  if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
-    return NextResponse.json({ error: "Le nouveau mot de passe doit faire au moins 6 caracteres" }, { status: 400 });
+  if (!newPassword || typeof newPassword !== "string" || newPassword.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json({ error: "Le nouveau mot de passe doit faire au moins 10 caracteres" }, { status: 400 });
   }
 
   const userId = session!.user.id;

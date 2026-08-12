@@ -50,10 +50,16 @@ export const participantSchema = z.object({
 
 export type ParticipantInput = z.infer<typeof participantSchema>;
 
+/**
+ * Longueur minimale d'un mot de passe back-office. Ces comptes voient les
+ * coordonnées de tous les clients : 6 caractères ne suffisent pas.
+ */
+export const MIN_PASSWORD_LENGTH = 10;
+
 export const adminUserSchema = z.object({
   email: z.string().email().max(255),
   nom: z.string().min(1).max(100),
-  password: z.string().min(6).max(128),
+  password: z.string().min(MIN_PASSWORD_LENGTH).max(128),
   role: z.enum(["ADMIN", "SUPERVISEUR", "CONCIERGE", "AGENT_INSTITUTIONNEL", "SCANNER"]).optional(),
 });
 

@@ -95,7 +95,7 @@ export default function CommandesPage() {
               <div className="space-y-3 text-[13px]">
                 <div className="flex justify-between"><span className="text-mute">Voyageur</span><span className="text-ink font-medium">{detail.prenom} {detail.nom}</span></div>
                 <div className="flex justify-between"><span className="text-mute">Email</span><span className="text-ink">{detail.email}</span></div>
-                <div className="flex justify-between"><span className="text-mute">Téléphone</span><span className="text-ink">{detail.telephone}</span></div>
+                <div className="flex justify-between"><span className="text-mute">Telephone</span><span className="text-ink">{detail.telephone}</span></div>
                 <div className="flex justify-between"><span className="text-mute">Nationalité</span><span className="text-ink">{detail.nationalite}</span></div>
                 <div className="flex justify-between"><span className="text-mute">Montant</span><span className="text-ink font-semibold mono">{fmt(detail.montantTotal)}</span></div>
                 <div className="flex justify-between items-center">

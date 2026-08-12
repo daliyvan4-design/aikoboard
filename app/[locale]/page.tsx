@@ -151,14 +151,14 @@ export default function LandingPage() {
       {/* ─── COMMENT CA MARCHE ─── */}
       <div className="max-w-7xl mx-auto px-5 lg:px-10 py-24 lg:py-32">
         <h2 className="font-serif text-[30px] sm:text-[38px] text-ink mb-16 max-w-md">
-          Trois etapes pour lancer votre evenement
+          {t("how_title")}
         </h2>
 
         <div className="grid md:grid-cols-3 gap-x-12 gap-y-10">
           {[
-            { icon: Calendar, title: t("step1_title"), desc: "Renseignez le nom, les dates, le lieu et uploadez votre logo. Votre page est en ligne en moins de 2 minutes." },
-            { icon: QrCode, title: t("step2_title"), desc: "Chaque participant recoit un QR code unique par email. Pour les conferences, un badge PVC avec photo est genere automatiquement." },
-            { icon: ScanLine, title: t("step3_title"), desc: "Scannez les QR codes a l'entree avec n'importe quel smartphone. Check-in en temps reel, stats instantanees." },
+            { icon: Calendar, title: t("step1_title"), desc: t("step1_desc") },
+            { icon: QrCode, title: t("step2_title"), desc: t("step2_desc") },
+            { icon: ScanLine, title: t("step3_title"), desc: t("step3_desc") },
           ].map((s) => (
             <div key={s.title}>
               <s.icon className="w-6 h-6 text-gold mb-5" strokeWidth={1.5} />
@@ -215,7 +215,7 @@ export default function LandingPage() {
               href={`/${locale}/evenements`}
               className="hidden sm:inline-flex items-center gap-1.5 text-[14px] text-gold hover:text-gold2 font-medium transition-colors"
             >
-              Voir tout <ArrowRight size={15} />
+              {t("see_all")} <ArrowRight size={15} />
             </Link>
           </div>
 
@@ -232,7 +232,7 @@ export default function LandingPage() {
           ) : (
             <div className="py-20 text-center">
               <p className="text-[16px] text-mute">{t("no_events")}</p>
-              <p className="text-[14px] text-mute/50 mt-2">Les prochains evenements apparaitront ici.</p>
+              <p className="text-[14px] text-mute/50 mt-2">{t("no_events_hint")}</p>
             </div>
           )}
         </div>
@@ -242,10 +242,10 @@ export default function LandingPage() {
       <div className="bg-ink text-cream">
         <div className="max-w-4xl mx-auto px-5 lg:px-10 py-24 lg:py-32 text-center">
           <h2 className="font-serif text-[30px] sm:text-[40px] lg:text-[48px] text-cream leading-tight">
-            Pret a lancer votre prochain evenement ?
+            {t("final_title")}
           </h2>
           <p className="mt-5 text-[16px] text-cream/45 max-w-lg mx-auto leading-[1.7]">
-            Creez votre evenement en moins de 2 minutes. Badges, QR codes, paiement mobile, tout est inclus.
+            {t("final_lead")}
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link
@@ -259,7 +259,7 @@ export default function LandingPage() {
               href="#participer"
               className="inline-flex items-center gap-2 text-cream/50 hover:text-cream border border-cream/12 hover:border-cream/25 rounded-full px-8 py-4 text-[15px] transition-all"
             >
-              Voir les evenements
+              {t("final_secondary")}
             </Link>
           </div>
         </div>

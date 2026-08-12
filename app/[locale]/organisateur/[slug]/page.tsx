@@ -83,6 +83,8 @@ function OrganisateurDashboardContent() {
     const urlToken = searchParams.get("token") ?? "";
     if (urlToken) storeManageToken(slug, urlToken);
     const token = urlToken || loadManageToken(slug);
+    // Meme raison : le stockage local nest lisible quapres le montage.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToken(token);
 
     const loadEvent = async () => {
@@ -128,7 +130,7 @@ function OrganisateurDashboardContent() {
   if (!event) {
     return (
       <div className="max-w-3xl mx-auto px-5 py-24 text-center">
-        <p className="text-mute text-[16px]">Evenement introuvable</p>
+        <p className="text-mute text-[16px]">Événement introuvable</p>
         <Link href={`/${locale}`} className="text-gold mt-4 inline-block">Retour</Link>
       </div>
     );
@@ -315,15 +317,15 @@ function OrganisateurDashboardContent() {
           </div>
         )}
 
-        {/* Acces prive requis */}
+        {/* Accès privé requis */}
         {accessDenied && (
           <div className="bg-white border border-line rounded-2xl px-6 py-12 text-center">
             <Lock className="w-10 h-10 text-gold mx-auto mb-4" />
-            <h2 className="font-serif text-[22px] text-ink mb-2">Liste des inscrits protegee</h2>
+            <h2 className="font-serif text-[22px] text-ink mb-2">Liste des inscrits protégée</h2>
             <p className="text-[14px] text-mute max-w-md mx-auto leading-relaxed">
               Les coordonnees de vos participants ne sont accessibles qu&apos;avec votre lien
-              prive de gestion. Il vous a ete envoye par email a la creation de
-              l&apos;evenement — ouvrez cette page depuis ce lien.
+              privé de gestion. Il vous a ete envoyé par email à la création de
+              l&apos;événement — ouvrez cette page depuis ce lien.
             </p>
           </div>
         )}
@@ -388,7 +390,7 @@ function OrganisateurDashboardContent() {
             <div className="px-6 py-16 text-center">
               <Users className="w-10 h-10 text-line mx-auto mb-3" />
               <p className="text-mute text-[14px]">
-                {search ? "Aucun resultat" : "Aucun participant pour le moment"}
+                {search ? "Aucun résultat" : "Aucun participant pour le moment"}
               </p>
             </div>
           ) : (

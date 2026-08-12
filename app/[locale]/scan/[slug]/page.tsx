@@ -88,6 +88,9 @@ function ScanPageContent() {
       return;
     }
     const stored = loadManageToken(slug);
+    // localStorage n existe pas au prerendu : le token ne peut etre lu
+    // qu apres le montage, d ou ce setState en effet.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored) setManageToken(stored);
   }, [slug, urlToken]);
 
@@ -172,8 +175,8 @@ function ScanPageContent() {
     } catch {
       setResult({
         status: "error",
-        title: "Erreur reseau",
-        subtitle: "Verifiez votre connexion internet.",
+        title: "Erreur réseau",
+        subtitle: "Vérifiez votre connexion internet.",
       });
     }
 
@@ -281,7 +284,7 @@ function ScanPageContent() {
       setCameraError(
         err instanceof Error
           ? err.message
-          : "Impossible d'acceder a la camera"
+          : "Impossible d'acceder à la camera"
       );
     }
   }, [handleQrData]);

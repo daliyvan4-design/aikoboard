@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Tableau de bord", roles: ["ADMIN", "SUPERVISEUR", "CONCIERGE", "AGENT_INSTITUTIONNEL", "SCANNER"] },
   { href: "/admin/briefing", icon: ClipboardCheck, label: "Briefing", roles: ["CONCIERGE"] },
   { href: "/admin/commandes", icon: ClipboardList, label: "Commandes", badge: true, roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/admin/events", icon: CalendarDays, label: "Evenements", roles: ["ADMIN", "SUPERVISEUR", "AGENT_INSTITUTIONNEL"] },
+  { href: "/admin/events", icon: CalendarDays, label: "Événements", roles: ["ADMIN", "SUPERVISEUR", "AGENT_INSTITUTIONNEL"] },
   { href: "/admin/residences", icon: Building, label: "Residences", roles: ["ADMIN", "SUPERVISEUR"] },
   { href: "/admin/tarifs", icon: Banknote, label: "Tarifs", roles: ["ADMIN", "CONCIERGE"] },
   { href: "/admin/voyageurs", icon: Users, label: "Voyageurs", roles: ["ADMIN", "SUPERVISEUR"] },

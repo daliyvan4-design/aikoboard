@@ -4,7 +4,7 @@ import { adminUserSchema } from "@/lib/validation";
 const validUser = {
   email: "test@aiko.com",
   nom: "Test User",
-  password: "aiko2026",
+  password: "aiko2026!secure",
 };
 
 describe("adminUserSchema", () => {
@@ -43,7 +43,7 @@ describe("adminUserSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects password shorter than 6 chars", () => {
+  it("rejects password shorter than the minimum", () => {
     const result = adminUserSchema.safeParse({ ...validUser, password: "abc" });
     expect(result.success).toBe(false);
   });
@@ -53,8 +53,13 @@ describe("adminUserSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts 6-char password", () => {
+  it("rejects a 6-char password (minimum releve a 10)", () => {
     const result = adminUserSchema.safeParse({ ...validUser, password: "123456" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a 10-char password", () => {
+    const result = adminUserSchema.safeParse({ ...validUser, password: "0123456789" });
     expect(result.success).toBe(true);
   });
 

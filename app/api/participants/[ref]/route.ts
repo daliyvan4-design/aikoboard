@@ -3,13 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { log } from "@/lib/logger";
 
-/** Une référence valide ressemble à AIKO-XXXXXXXX. */
+/** Une reference valide ressemble à AIKO-XXXXXXXX. */
 const REF_PATTERN = /^[A-Za-z0-9-]{6,40}$/;
 
 /**
- * Consultation d'une inscription par sa référence (QR code).
+ * Consultation d'une inscription par sa reference (QR code).
  *
- * La référence tient lieu de secret : la route est donc limitée en débit
+ * La reference tient lieu de secret : la route est donc limitée en débit
  * pour empêcher l'énumération, et ne renvoie que les champs nécessaires
  * au billet, au badge et au reçu.
  */

@@ -177,7 +177,7 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
               </div>
             </div>
 
-            {/* Téléphone */}
+            {/* Telephone */}
             <div>
               <label className="block text-[12px] font-medium text-ink mb-2 uppercase tracking-wider">
                 {t("f.phone")}

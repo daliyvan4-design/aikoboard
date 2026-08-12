@@ -13,16 +13,6 @@ const config = [
     ],
   },
   ...coreWebVitals,
-  {
-    rules: {
-      // Règles arrivées avec eslint-plugin-react-hooks 7 : elles signalent
-      // du code existant (setState en fin d'effet, Date.now() au rendu) qui
-      // n'est pas fautif au point de bloquer la CI. À repasser en "error"
-      // une fois ces écrans nettoyés.
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/purity": "warn",
-    },
-  },
 ];
 
 export default config;

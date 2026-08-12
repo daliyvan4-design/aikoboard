@@ -78,7 +78,7 @@ export default function CarnetDeRoutePage() {
         <div className="bg-white rounded-2xl border border-line p-6 mb-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[13px]">
             <div>
-              <p className="text-mute text-[10px] uppercase tracking-wider mb-1">Téléphone</p>
+              <p className="text-mute text-[10px] uppercase tracking-wider mb-1">Telephone</p>
               <p className="text-ink">{commande.telephone}</p>
             </div>
             <div>

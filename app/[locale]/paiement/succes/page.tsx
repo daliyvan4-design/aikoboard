@@ -87,11 +87,12 @@ function SuccessContent() {
   }, [participantRef]);
 
   useEffect(() => {
-    if (!participantRef) {
-      setLoading(false);
-      return;
-    }
-    fetchParticipant();
+    // `loading` demarre deja a false quand il n'y a pas de reference
+    // (useState(!!participantRef)) : rien a remettre a zero ici.
+    // Les setState de fetchParticipant surviennent apres l'await du fetch,
+    // jamais pendant le rendu.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (participantRef) fetchParticipant();
   }, [participantRef, fetchParticipant]);
 
   useEffect(() => {
@@ -226,8 +227,8 @@ function SuccessContent() {
               {isConcert ? "Ticket confirme" : "Inscription confirmee"}
             </h2>
             <p className="text-mute mt-3 text-[16px] max-w-lg mx-auto">
-              {participant.prenom}, votre QR code d&apos;acces pour <strong>{participant.event.nom}</strong> est pret.
-              Presentez-le a l&apos;entree le jour de l&apos;evenement.
+              {participant.prenom}, votre QR code d&apos;accès pour <strong>{participant.event.nom}</strong> est prêt.
+              Présentez-le à l&apos;entrée le jour de l&apos;événement.
             </p>
           </div>
 
@@ -268,7 +269,7 @@ function SuccessContent() {
               </div>
 
               <div className="text-center pb-4">
-                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Presentez ce QR code a l&apos;entree</p>
+                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Présentez ce QR code à l&apos;entrée</p>
               </div>
             </div>
 
@@ -284,7 +285,7 @@ function SuccessContent() {
                 ) : (
                   <Download className="w-5 h-5" />
                 )}
-                {downloading ? "Generation..." : "Telecharger mon QR code (PDF)"}
+                {downloading ? "Generation..." : "Télécharger mon QR code (PDF)"}
               </button>
 
               {price > 0 && (
@@ -313,7 +314,7 @@ function SuccessContent() {
                   className="btn-press inline-flex items-center gap-2 border border-line text-ink rounded-full px-6 py-4 text-[14px] font-medium hover:bg-cream2"
                 >
                   <FileText className="w-4 h-4" />
-                  Telecharger le recu
+                  Télécharger le recu
                 </button>
               )}
             </div>
@@ -327,7 +328,7 @@ function SuccessContent() {
               </Link>
             </p>
             <Link href={`/${locale}`} className="text-[14px] text-gold hover:text-gold2 font-medium block">
-              ← Retour a l&apos;accueil
+              ← Retour à l&apos;accueil
             </Link>
           </div>
         </div>
@@ -355,8 +356,8 @@ function SuccessContent() {
           <div className="mb-8">
             <p className="text-[14px] text-mute mb-5 max-w-md mx-auto leading-relaxed">
               {eventActivated === false
-                ? "Activation en cours. Votre lien prive de gestion vous est envoye par email des confirmation du paiement."
-                : "Votre evenement est actif. Le lien prive de votre tableau de bord vient de vous etre envoye par email — conservez-le."}
+                ? "Activation en cours. Votre lien privé de gestion vous est envoyé par email des confirmation du paiement."
+                : "Votre événement est actif. Le lien privé de votre tableau de bord vient de vous etre envoyé par email — conservez-le."}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
@@ -379,7 +380,7 @@ function SuccessContent() {
               href={`/${locale}`}
               className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold"
             >
-              Retour a l&apos;accueil
+              Retour à l&apos;accueil
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

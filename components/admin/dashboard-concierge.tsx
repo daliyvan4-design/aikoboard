@@ -66,6 +66,9 @@ export function DashboardConcierge() {
   }) || [];
 
   function timeAgo(dateStr: string): string {
+    // Meme cas que TeamLoadCard : libelle relatif dans un ecran back-office
+    // rendu uniquement cote client.
+    // eslint-disable-next-line react-hooks/purity
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 60) return `il y a ${mins}min`;

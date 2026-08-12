@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./lib/i18n-routing";
 import { getToken } from "next-auth/jwt";
+import { rateLimit } from "./lib/rate-limit";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -24,6 +25,11 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
+    // Plafond global du back-office : un compte compromis ne peut pas
+    // aspirer la base sans frein. Le quota suit le compte, pas l'IP.
+    const blocked = await rateLimit(request, "admin", 120, "60 s", `admin:${token.sub}`);
+    if (blocked) return blocked;
+
     return NextResponse.next();
   }
 

@@ -9,7 +9,7 @@ import {
   type CreatePaymentInput,
 } from "@/lib/geniuspay";
 import { rateLimit } from "@/lib/rate-limit";
-import { log } from "@/lib/logger";
+import { alertCritical } from "@/lib/alert";
 import {
   EVENT_CREATION_PRICE_XOF,
   MIN_PAYMENT_XOF,
@@ -188,7 +188,13 @@ export async function POST(req: NextRequest) {
       status: payment.status,
     });
   } catch (err: unknown) {
-    log.error("Creation de paiement impossible", { route: "POST /api/payments" }, err);
+    // Un paiement qui ne part pas, c'est une vente perdue : on alerte.
+    await alertCritical({
+      key: "payment-create-failed",
+      title: "Creation de paiement impossible",
+      details: { route: "POST /api/payments" },
+      error: err,
+    });
     return NextResponse.json({ error: "Erreur de paiement" }, { status: 500 });
   }
 }

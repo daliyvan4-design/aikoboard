@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
   const sep = ";";
   const bom = "﻿";
-  const header = ["Référence", "Prénom", "Nom", "Email", "Téléphone", "Nationalité", "Arrivée", "Départ", "Personnes", "Montant", "Devise", "Statut"]
+  const header = ["Reference", "Prénom", "Nom", "Email", "Telephone", "Nationalité", "Arrivée", "Départ", "Personnes", "Montant", "Devise", "Statut"]
     .map(escapeCSV).join(sep);
 
   const rows = commandes.map((c) =>

@@ -62,10 +62,10 @@ export default function MonQRPage() {
       if (data.success) {
         setParticipant(data.data);
       } else {
-        setError("Reference introuvable. Verifiez votre numero.");
+        setError("Reference introuvable. Vérifiez votre numéro.");
       }
     } catch {
-      setError("Erreur reseau. Reessayez.");
+      setError("Erreur réseau. Réessayez.");
     }
 
     setLoading(false);
@@ -168,7 +168,7 @@ export default function MonQRPage() {
         <div className="text-center mb-10">
           <h1 className="font-serif text-[32px] text-ink">Mon QR Code</h1>
           <p className="text-mute mt-2 text-[15px]">
-            Entrez votre numero de reference pour retrouver votre QR code d&apos;acces.
+            Entrez votre numéro de reference pour retrouver votre QR code d&apos;accès.
           </p>
         </div>
 
@@ -241,7 +241,7 @@ export default function MonQRPage() {
               </div>
 
               <div className="text-center pb-4">
-                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Presentez ce QR code a l&apos;entree</p>
+                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Présentez ce QR code à l&apos;entrée</p>
               </div>
             </div>
 
@@ -255,7 +255,7 @@ export default function MonQRPage() {
               ) : (
                 <Download className="w-5 h-5" />
               )}
-              {downloading ? "Generation..." : "Telecharger mon QR code (PDF)"}
+              {downloading ? "Generation..." : "Télécharger mon QR code (PDF)"}
             </button>
           </div>
         )}

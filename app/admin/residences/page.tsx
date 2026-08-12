@@ -158,6 +158,9 @@ export default function ResidencesPage() {
   }, []);
 
   useEffect(() => {
+    // setLoading n'est appele qu'apres l'await du fetch, donc jamais pendant
+    // le rendu ; la regle ne sait pas remonter au-dela du callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchResidences();
   }, [fetchResidences]);
 
@@ -446,7 +449,7 @@ export default function ResidencesPage() {
               className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-3 text-[13px] font-semibold disabled:opacity-40"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {editId ? "Enregistrer" : "Creer"}
+              {editId ? "Enregistrer" : "Créer"}
             </button>
           </div>
         </div>

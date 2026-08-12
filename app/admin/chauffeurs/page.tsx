@@ -89,7 +89,7 @@ export default function ChauffeursPage() {
             <thead className="text-[10px] uppercase tracking-[0.18em] text-mute bg-cream/50">
               <tr>
                 <th className="text-left font-medium px-5 py-3">Nom</th>
-                <th className="text-left font-medium px-5 py-3">Téléphone</th>
+                <th className="text-left font-medium px-5 py-3">Telephone</th>
                 <th className="text-left font-medium px-5 py-3">Véhicule</th>
                 <th className="text-left font-medium px-5 py-3">Immatriculation</th>
                 <th className="text-left font-medium px-5 py-3">Statut</th>

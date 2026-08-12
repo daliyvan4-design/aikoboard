@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyWebhookSignature, type WebhookPayload } from "@/lib/geniuspay";
 import { applyPaymentSuccess } from "@/lib/payment-flow";
+import { alertCritical } from "@/lib/alert";
 import { log } from "@/lib/logger";
 
 /** Tolérance d'horloge acceptée pour un webhook (anti-rejeu). */
@@ -59,6 +60,14 @@ export async function POST(req: NextRequest) {
     if (code === "P2002") {
       return NextResponse.json({ received: true, duplicate: true });
     }
+    // Base injoignable : le paiement est encaisse mais rien ne sera
+    // enregistre. C'est l'incident le plus couteux du systeme.
+    await alertCritical({
+      key: "webhook-journal-failed",
+      title: "Webhook GeniusPay non journalise",
+      details: { event, eventId },
+      error: err,
+    });
     throw err;
   }
 

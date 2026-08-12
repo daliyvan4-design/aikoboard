@@ -518,7 +518,16 @@
     "price3_sub": "Commission on each sale",
     "concert": "Concert",
     "tech": "Tech",
-    "conference": "Conference"
+    "conference": "Conference",
+    "how_title": "Three steps to launch your event",
+    "step1_desc": "Enter the name, dates and venue, then upload your logo. Your page is live in under 2 minutes.",
+    "step2_desc": "Every attendee receives a unique QR code by email. For conferences, a PVC badge with photo is generated automatically.",
+    "step3_desc": "Scan QR codes at the door with any smartphone. Real-time check-in, instant statistics.",
+    "see_all": "See all",
+    "no_events_hint": "Upcoming events will appear here.",
+    "final_title": "Ready to launch your next event?",
+    "final_lead": "Create your event in under 2 minutes. Badges, QR codes and mobile payment are all included.",
+    "final_secondary": "Browse events"
   },
   "tst": {
     "saved": "Saved"

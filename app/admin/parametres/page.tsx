@@ -5,6 +5,7 @@ import { Topbar } from "@/components/admin/topbar";
 import { useToast } from "@/components/admin/toast";
 import { useSession } from "next-auth/react";
 import { Trash2, Plus, Shield, ShieldCheck, User, UserCog, ToggleLeft, ToggleRight } from "lucide-react";
+import { MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 const ROLE_OPTIONS = [
   { value: "SCANNER", label: "Scanner", icon: User, color: "bg-green-100 text-green-700" },
@@ -47,10 +48,14 @@ export default function ParametresPage() {
   };
 
   useEffect(() => {
+    // Champs de formulaire pre-remplis depuis la session, qui arrive apres
+    // le premier rendu : il n'y a pas d'autre moment pour les initialiser.
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (session?.user) {
       setNom(session.user.name || "");
       setEmail(session.user.email || "");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     fetchUsers();
   }, [session]);
 
@@ -68,7 +73,7 @@ export default function ParametresPage() {
     e.preventDefault();
     setPwError("");
     if (newPw !== confirmPw) { setPwError("Les mots de passe ne correspondent pas"); return; }
-    if (newPw.length < 6) { setPwError("Le mot de passe doit faire au moins 6 caracteres"); return; }
+    if (newPw.length < MIN_PASSWORD_LENGTH) { setPwError("Le mot de passe doit faire au moins 10 caracteres"); return; }
 
     const res = await fetch("/api/admin/password", {
       method: "PATCH",
@@ -247,7 +252,7 @@ export default function ParametresPage() {
                   Annuler
                 </button>
                 <button type="submit" className="bg-gold text-ink rounded-full px-5 py-2.5 text-[13px] font-semibold btn-press hover:bg-gold2">
-                  Creer le compte
+                  Créer le compte
                 </button>
               </div>
             </form>

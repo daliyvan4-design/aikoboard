@@ -17,6 +17,10 @@ export function TeamLoadCard({ concierges }: TeamLoadCardProps) {
 
   function timeAgo(dateStr: string | null): string {
     if (!dateStr) return "—";
+    // Un libelle relatif ("il y a 5min") a besoin de l'heure courante. Ce
+    // composant est client-only (back-office), sans rendu serveur a
+    // desynchroniser.
+    // eslint-disable-next-line react-hooks/purity
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 60) return `il y a ${mins}min`;

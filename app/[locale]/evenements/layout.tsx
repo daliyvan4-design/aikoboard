@@ -30,7 +30,7 @@ export async function generateMetadata({
     openGraph: {
       title: m.title,
       description: m.description,
-      url: `https://aikoboard.com/${locale}/evenements`,
+      url: `https://aikoboard.com/${locale}/événements`,
     },
   };
 }

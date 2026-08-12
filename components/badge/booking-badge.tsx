@@ -119,7 +119,7 @@ export function BookingBadge({
             <p style={{ fontSize: 14, color: "#fff", fontWeight: 500, marginTop: 2 }}>{nombrePersonnes}</p>
           </div>
           <div>
-            <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>Référence</p>
+            <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>Reference</p>
             <p style={{ fontSize: 14, color: "#C8A951", fontWeight: 600, marginTop: 2, fontFamily: "monospace" }}>{reference}</p>
           </div>
         </div>

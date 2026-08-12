@@ -52,7 +52,7 @@ export function DashboardScanner() {
     <>
       <Topbar
         title="Scanner"
-        subtitle={`${actifs.length} evenement${actifs.length > 1 ? "s" : ""} actif${actifs.length > 1 ? "s" : ""}`}
+        subtitle={`${actifs.length} événement${actifs.length > 1 ? "s" : ""} actif${actifs.length > 1 ? "s" : ""}`}
       />
       <div className="p-6 lg:p-10">
         {loading ? (
@@ -62,7 +62,7 @@ export function DashboardScanner() {
         ) : events.length === 0 ? (
           <div className="text-center py-20">
             <ScanLine className="w-12 h-12 text-mute mx-auto mb-4" />
-            <p className="text-mute">Aucun evenement a scanner</p>
+            <p className="text-mute">Aucun événement a scanner</p>
           </div>
         ) : (
           <div className="space-y-4">

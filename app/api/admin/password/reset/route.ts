@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { rateLimit } from "@/lib/rate-limit";
+import { MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const limited = await rateLimit(req, "reset-password", 5, "60 s");
@@ -9,8 +10,8 @@ export async function POST(req: NextRequest) {
 
   const { token, password } = await req.json();
 
-  if (!token || typeof token !== "string" || !password || typeof password !== "string" || password.length < 6) {
-    return NextResponse.json({ error: "Token et mot de passe (min 6 caractères) requis" }, { status: 400 });
+  if (!token || typeof token !== "string" || !password || typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json({ error: "Token et mot de passe (min 10 caractères) requis" }, { status: 400 });
   }
 
   const user = await prisma.adminUser.findFirst({

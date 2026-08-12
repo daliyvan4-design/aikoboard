@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AikoLogo } from "@/components/brand/aiko-logo";
 import { Lock, CheckCircle2, ArrowLeft } from "lucide-react";
+import { MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 function ResetForm() {
   const searchParams = useSearchParams();
@@ -31,8 +32,8 @@ function ResetForm() {
     e.preventDefault();
     setError("");
 
-    if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères.");
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError("Le mot de passe doit contenir au moins 10 caractères.");
       return;
     }
     if (password !== confirm) {
@@ -99,7 +100,7 @@ function ResetForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 6 caractères"
+              placeholder="Min. 10 caractères"
               required
               minLength={6}
               className="w-full bg-ink border border-cream/10 rounded-xl pl-10 pr-4 py-3 text-[13px] text-cream placeholder:text-cream/30 focus:border-gold focus:ring-1 focus:ring-gold/30"

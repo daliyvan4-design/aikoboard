@@ -67,7 +67,7 @@ export default function MentionsLegalesPage() {
             <h2 className="font-serif text-[22px] text-ink mb-3">Cookies</h2>
             <p>
               Le site utilise des cookies strictement nécessaires au fonctionnement de la
-              plateforme (authentification, préférences de langue). Aucun cookie publicitaire
+              plateforme (authentification, preferences de langue). Aucun cookie publicitaire
               ou de suivi n&apos;est utilisé.
             </p>
           </div>

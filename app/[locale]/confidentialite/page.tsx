@@ -23,10 +23,10 @@ export default function ConfidentialitePage() {
             <h2 className="font-serif text-[22px] text-ink mb-3">1. Données collectées</h2>
             <p>Dans le cadre de l&apos;utilisation de la plateforme AIKO Board, nous collectons :</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Données d&apos;identification :</strong> nom, prénom, email, téléphone</li>
+              <li><strong>Données d&apos;identification :</strong> nom, prénom, email, telephone</li>
               <li><strong>Données de participation :</strong> événements inscrits, badges, tickets, QR codes</li>
-              <li><strong>Données de paiement :</strong> références de transaction (les données bancaires sont traitées par GeniusPay et ne transitent pas par nos serveurs)</li>
-              <li><strong>Données de navigation :</strong> préférences de langue, cookies de session</li>
+              <li><strong>Données de paiement :</strong> references de transaction (les données bancaires sont traitées par GeniusPay et ne transitent pas par nos serveurs)</li>
+              <li><strong>Données de navigation :</strong> preferences de langue, cookies de session</li>
             </ul>
           </div>
 
@@ -107,7 +107,7 @@ export default function ConfidentialitePage() {
             <h2 className="font-serif text-[22px] text-ink mb-3">8. Cookies</h2>
             <p>
               AIKO Board utilise uniquement des cookies essentiels au fonctionnement du
-              service : session d&apos;authentification et préférences de langue. Aucun cookie de
+              service : session d&apos;authentification et preferences de langue. Aucun cookie de
               tracking, publicitaire ou analytique n&apos;est déposé.
             </p>
           </div>

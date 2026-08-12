@@ -78,7 +78,7 @@ export default function RapportsPage() {
           <div className="space-y-8 mb-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-2xl border border-line p-5">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-mute">Evenements</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-mute">Événements</p>
                 <p className="figure text-[32px] text-ink mt-2">{eventStats.totalEvents}</p>
               </div>
               <div className="bg-white rounded-2xl border border-line p-5">
@@ -96,11 +96,11 @@ export default function RapportsPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-line p-5">
-              <h3 className="font-serif text-[18px] text-ink mb-4">Evenements actifs</h3>
+              <h3 className="font-serif text-[18px] text-ink mb-4">Événements actifs</h3>
               <table className="w-full text-[13px]">
                 <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
                   <tr>
-                    <th className="text-left font-medium py-2">Evenement</th>
+                    <th className="text-left font-medium py-2">Événement</th>
                     <th className="text-right font-medium py-2">Participants</th>
                     <th className="text-right font-medium py-2">Check-ins</th>
                     <th className="text-right font-medium py-2">Revenus</th>

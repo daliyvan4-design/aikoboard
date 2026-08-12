@@ -189,12 +189,12 @@ export default function EventPage() {
         // on montre la vraie raison plutot qu'un faux QR code.
         setPayError(
           data.code === "EVENT_FULL"
-            ? "Cet evenement est complet."
-            : data.error ?? "Inscription impossible. Reessayez.",
+            ? "Cet événement est complet."
+            : data.error ?? "Inscription impossible. Réessayez.",
         );
       }
     } catch {
-      setPayError("Connexion impossible. Verifiez votre reseau et reessayez.");
+      setPayError("Connexion impossible. Vérifiez votre réseau et réessayez.");
     }
 
     setUploadingPhoto(false);
@@ -235,12 +235,12 @@ export default function EventPage() {
         abort: true,
         error:
           data.code === "EVENT_FULL"
-            ? "Cet evenement est complet."
-            : data.error ?? "Inscription impossible. Reessayez.",
+            ? "Cet événement est complet."
+            : data.error ?? "Inscription impossible. Réessayez.",
       };
     } catch {
       setUploadingPhoto(false);
-      return { abort: true, error: "Connexion impossible. Reessayez." };
+      return { abort: true, error: "Connexion impossible. Réessayez." };
     }
   };
 
@@ -334,7 +334,7 @@ export default function EventPage() {
               {ts("confirmed_badge")}
             </h2>
             <p className="text-mute mt-3 text-[15px] max-w-md mx-auto">
-              {form.prenom}, telechargez votre QR code et presentez-le a l&apos;entree de <strong>{event.nom}</strong>
+              {form.prenom}, téléchargez votre QR code et présentez-le à l&apos;entrée de <strong>{event.nom}</strong>
             </p>
           </div>
 
@@ -378,7 +378,7 @@ export default function EventPage() {
               </div>
 
               <div className="text-center pb-4">
-                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Presentez ce QR code a l&apos;entree</p>
+                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Présentez ce QR code à l&apos;entrée</p>
               </div>
             </div>
 
@@ -392,7 +392,7 @@ export default function EventPage() {
               ) : (
                 <Download className="w-5 h-5" />
               )}
-              {downloading ? "Generation..." : "Telecharger mon QR code (PDF)"}
+              {downloading ? "Generation..." : "Télécharger mon QR code (PDF)"}
             </button>
           </div>
 

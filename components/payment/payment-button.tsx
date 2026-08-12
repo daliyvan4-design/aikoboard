@@ -117,7 +117,7 @@ export function PaymentButton({
       </button>
       <p className="flex items-center justify-center gap-1.5 text-[11px] text-mute mt-3">
         <ShieldCheck className="w-3.5 h-3.5" />
-        Paiement securise via GeniusPay
+        Paiement sécurisé via GeniusPay
       </p>
     </div>
   );

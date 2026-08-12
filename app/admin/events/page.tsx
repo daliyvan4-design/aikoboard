@@ -135,7 +135,7 @@ export default function AdminEventsPage() {
         {editId && (
           <div className="bg-cream2 border border-line rounded-2xl p-6 mb-6 space-y-5 animate-fade-up">
             <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-ink">Modifier l&apos;evenement</h2>
+              <h2 className="text-[16px] font-semibold text-ink">Modifier l&apos;événement</h2>
               <button onClick={() => setEditId(null)} className="text-mute hover:text-ink">
                 <X className="w-5 h-5" />
               </button>
@@ -278,7 +278,7 @@ export default function AdminEventsPage() {
         ) : events.length === 0 ? (
           <div className="text-center py-20">
             <Calendar className="w-12 h-12 text-mute mx-auto mb-4" />
-            <p className="text-mute">Aucun evenement cree</p>
+            <p className="text-mute">Aucun événement cree</p>
           </div>
         ) : (
           <div className="space-y-4">

@@ -12,7 +12,7 @@ import { log } from "@/lib/logger";
  * de l'événement — c'est ce qui permet à un organisateur de scanner ses
  * propres badges sans compte admin. Avec un token, l'événement (`slug`) est
  * exigé : il est validé avant toute lecture de participant, pour qu'un
- * token invalide ne serve pas à deviner des références existantes.
+ * token invalide ne serve pas à deviner des references existantes.
  */
 export async function POST(
   req: NextRequest,

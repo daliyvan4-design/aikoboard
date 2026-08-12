@@ -43,7 +43,7 @@ export function ChauffeurForm({ initial, onSave, onCancel }: ChauffeurFormProps)
               className="w-full bg-cream border border-line rounded-xl px-4 py-2.5 text-[13px]" />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-[0.22em] text-mute mb-1 block">Téléphone</label>
+            <label className="text-[10px] uppercase tracking-[0.22em] text-mute mb-1 block">Telephone</label>
             <input value={telephone} onChange={(e) => setTelephone(e.target.value)} required
               className="w-full bg-cream border border-line rounded-xl px-4 py-2.5 text-[13px]" />
           </div>

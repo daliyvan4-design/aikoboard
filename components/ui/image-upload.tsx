@@ -47,7 +47,7 @@ export function ImageUpload({
         setError(data.error ?? "Erreur upload");
       }
     } catch {
-      setError("Erreur reseau");
+      setError("Erreur réseau");
     }
 
     setUploading(false);

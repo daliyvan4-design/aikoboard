@@ -1,6 +1,7 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
+import { notFound } from "next/navigation";
 
 const NAVY = "#0A1628";
 const GOLD = "#C8A951";
@@ -183,6 +184,10 @@ function TicketConcert() {
 }
 
 export default function PreviewBadge() {
+  // Page de reference design, utile en developpement seulement : en
+  // production elle repond 404 plutot que d'exposer une page de test.
+  if (process.env.NODE_ENV === "production") notFound();
+
   return (
     <div className="min-h-screen bg-cream2 p-10">
       <h1 className="text-2xl font-bold text-ink mb-2">Badge & Ticket Preview — AVCA Style</h1>

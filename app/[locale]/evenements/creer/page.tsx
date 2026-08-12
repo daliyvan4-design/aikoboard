@@ -152,9 +152,9 @@ export default function CreerPage() {
         return { eventSlug: data.slug };
       }
       // Pas d'evenement enregistre = pas de debit.
-      return { abort: true, error: data.error ?? "Creation impossible. Reessayez." };
+      return { abort: true, error: data.error ?? "Création impossible. Réessayez." };
     } catch {
-      return { abort: true, error: "Connexion impossible. Reessayez." };
+      return { abort: true, error: "Connexion impossible. Réessayez." };
     }
   };
 
@@ -663,7 +663,7 @@ export default function CreerPage() {
               <PaymentButton
                 amount={32500}
                 currency="XOF"
-                description={`Creation evenement AIKO — ${form.name}`}
+                description={`Création événement AIKO — ${form.name}`}
                 customerName={form.organisateur}
                 customerEmail={form.contactEmail}
                 customerPhone={form.contactTel}
@@ -671,7 +671,7 @@ export default function CreerPage() {
                 onBeforePay={saveEventBeforePay}
                 onError={setPayError}
                 disabled={!form.contactEmail}
-                label="Payer 50 € et creer"
+                label="Payer 50 € et créer"
               />
             </div>
           </div>
