@@ -6,6 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const blocked = await rateLimit(req, "upload", 10, "60 s");
     if (blocked) return blocked;
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as string) ?? "events";
@@ -25,13 +26,15 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
     const { url } = await uploadImage(buffer, folder);
 
     return NextResponse.json({ success: true, url });
-  } catch (err) {
-    console.error("[upload] error:", err);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Erreur upload";
+    console.error("[upload] error:", msg);
     return NextResponse.json(
-      { error: "Erreur upload" },
+      { error: msg },
       { status: 500 },
     );
   }

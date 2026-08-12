@@ -113,9 +113,7 @@ export default function OrganisateurDashboard() {
     setPrinting(true);
 
     try {
-      const { QRCodeCanvas } = await import("qrcode.react");
-      const { createRoot } = await import("react-dom/client");
-      const { createElement } = await import("react");
+      const QRCode = (await import("qrcode")).default;
 
       const qrDataUrls: string[] = [];
       for (const p of event.participants) {
@@ -126,37 +124,21 @@ export default function OrganisateurDashboard() {
           type: "badge",
           ticket: p.ticketNumber,
         });
-        const canvas = document.createElement("canvas");
-        const container = document.createElement("div");
-        document.body.appendChild(container);
-        const root = createRoot(container);
-        await new Promise<void>((resolve) => {
-          root.render(
-            createElement(QRCodeCanvas, {
-              value: qrValue,
-              size: 512,
-              bgColor: "#0A0A0A",
-              fgColor: "#C8A951",
-              level: "M",
-              ref: (el: HTMLCanvasElement | null) => {
-                if (el) {
-                  qrDataUrls.push(el.toDataURL("image/png"));
-                  resolve();
-                }
-              },
-            })
-          );
+        const dataUrl = await QRCode.toDataURL(qrValue, {
+          width: 512,
+          margin: 1,
+          color: { dark: "#C8A951", light: "#0A0A0A" },
+          errorCorrectionLevel: "M",
         });
-        root.unmount();
-        document.body.removeChild(container);
+        qrDataUrls.push(dataUrl);
       }
 
-      const formatDate = (d: string) =>
+      const fmtDate = (d: string) =>
         new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
       const pdf = generatePvcBadgePDF({
         eventName: event.nom,
-        eventDate: `${formatDate(event.dateDebut)} — ${formatDate(event.dateFin)}`,
+        eventDate: `${fmtDate(event.dateDebut)} — ${fmtDate(event.dateFin)}`,
         eventLieu: `${event.lieu} · ${event.ville}`,
         eventType: event.type,
         organisateur: event.organisateur,

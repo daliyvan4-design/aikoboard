@@ -49,19 +49,24 @@ export async function rateLimit(
   if (!limiter) return null;
 
   const ip = getClientIp(req);
-  const { success, remaining, reset } = await limiter.limit(ip);
 
-  if (!success) {
-    return NextResponse.json(
-      { error: "Trop de requetes. Reessayez dans quelques instants." },
-      {
-        status: 429,
-        headers: {
-          "X-RateLimit-Remaining": String(remaining),
-          "X-RateLimit-Reset": String(reset),
+  try {
+    const { success, remaining, reset } = await limiter.limit(ip);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Trop de requetes. Reessayez dans quelques instants." },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Remaining": String(remaining),
+            "X-RateLimit-Reset": String(reset),
+          },
         },
-      },
-    );
+      );
+    }
+  } catch {
+    // Redis unavailable — allow request through
   }
 
   return null;

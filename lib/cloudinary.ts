@@ -1,10 +1,14 @@
 import { v2 as cloudinary } from "cloudinary";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+function ensureConfig() {
+  if (!cloudinary.config().cloud_name) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+  }
+}
 
 export { cloudinary };
 
@@ -12,24 +16,19 @@ export async function uploadImage(
   buffer: Buffer,
   folder: string,
 ): Promise<{ url: string; publicId: string }> {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        {
-          folder: `aiko/${folder}`,
-          resource_type: "image",
-          transformation: [
-            { quality: "auto", fetch_format: "auto" },
-            { width: 1600, crop: "limit" },
-          ],
-        },
-        (error, result) => {
-          if (error || !result) return reject(error ?? new Error("Upload failed"));
-          resolve({ url: result.secure_url, publicId: result.public_id });
-        },
-      )
-      .end(buffer);
+  ensureConfig();
+
+  const dataUri = `data:image/png;base64,${buffer.toString("base64")}`;
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder: `aiko/${folder}`,
+    resource_type: "image",
+    transformation: [
+      { quality: "auto", fetch_format: "auto" },
+      { width: 1600, crop: "limit" },
+    ],
   });
+
+  return { url: result.secure_url, publicId: result.public_id };
 }
 
 export function optimizedUrl(url: string, width?: number): string {
