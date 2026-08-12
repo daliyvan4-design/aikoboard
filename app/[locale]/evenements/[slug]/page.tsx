@@ -9,7 +9,6 @@ import {
   MapPin,
   Users,
   CheckCircle2,
-  Printer,
   Download,
   Ticket,
   Loader2,
@@ -17,14 +16,11 @@ import {
   Star,
   Car,
   Sparkles,
-  RotateCw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { PaymentButton } from "@/components/payment/payment-button";
-import { generateTicketPDF } from "@/lib/generate-ticket-pdf";
-import { generateSingleBadgePDF } from "@/lib/generate-badge-pdf";
 import { EventMap } from "@/components/ui/event-map";
 
 interface ResidenceTarif {
@@ -106,8 +102,9 @@ export default function EventPage() {
   const [ticketNum, setTicketNum] = useState(0);
   const [payError, setPayError] = useState("");
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
-  const [showVerso, setShowVerso] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
+  const displayRef = ref || `AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   const hasLogement = event?.offreLogement && event.residence && event.residence.tarifs.length > 0;
   const selectedTarif = hasLogement ? event!.residence!.tarifs.find((t) => t.id === selectedTarifId) : null;
 
@@ -204,286 +201,156 @@ export default function EventPage() {
     return { eventSlug: event.slug };
   };
 
-  if (step === "done") {
-    const displayRef = ref || `AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const handleDownloadQR = async () => {
+    setDownloading(true);
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const { jsPDF } = await import("jspdf");
 
+      const qrValue = JSON.stringify({
+        ref: displayRef,
+        event: event.nom,
+        name: `${form.prenom} ${form.nom}`,
+        type: isConcert ? "ticket" : "badge",
+        ticket: ticketNum,
+      });
+
+      const qrDataUrl = await QRCode.toDataURL(qrValue, {
+        width: 800,
+        margin: 2,
+        color: { dark: "#0A0A0A", light: "#FFFFFF" },
+        errorCorrectionLevel: "M",
+      });
+
+      const doc = new jsPDF({ unit: "mm", format: [100, 140] });
+
+      doc.setFillColor(10, 10, 10);
+      doc.rect(0, 0, 100, 140, "F");
+
+      doc.setFillColor(200, 169, 81);
+      doc.rect(0, 0, 100, 12, "F");
+      doc.setTextColor(10, 10, 10);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("AIKO BOARD", 50, 8, { align: "center" });
+
+      doc.setTextColor(200, 169, 81);
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      const evLines = doc.splitTextToSize(event.nom, 80);
+      doc.text(evLines.slice(0, 2), 50, 20, { align: "center" });
+
+      doc.setTextColor(150, 150, 150);
+      doc.setFontSize(5.5);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${formatDateRange(event.dateDebut, event.dateFin)} · ${event.lieu}`, 50, 28, { align: "center" });
+
+      const qrSize = 55;
+      doc.addImage(qrDataUrl, "PNG", (100 - qrSize) / 2, 34, qrSize, qrSize);
+
+      doc.setTextColor(200, 169, 81);
+      doc.setFontSize(6);
+      doc.setFont("helvetica", "bold");
+      doc.text("REFERENCE", 50, 96, { align: "center" });
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text(displayRef, 50, 103, { align: "center" });
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${form.prenom} ${form.nom}`, 50, 112, { align: "center" });
+
+      if (form.organisation) {
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(6);
+        doc.setFont("helvetica", "normal");
+        doc.text(form.organisation, 50, 118, { align: "center" });
+      }
+
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(4.5);
+      doc.text("Presentez ce QR code a l'entree de l'evenement", 50, 132, { align: "center" });
+
+      doc.save(`qr-${displayRef}.pdf`);
+    } catch (err) {
+      console.error("QR PDF error:", err);
+    }
+    setDownloading(false);
+  };
+
+  if (step === "done") {
     return (
       <section className="animate-fade-up">
-        <div className="max-w-3xl mx-auto px-5 lg:px-8 pt-10 pb-24">
-          <div className="text-center mb-12">
+        <div className="max-w-lg mx-auto px-5 lg:px-8 pt-10 pb-24">
+          <div className="text-center mb-10">
             <CheckCircle2 className="w-16 h-16 text-ok mx-auto mb-5" />
-            <h2 className="font-serif text-[36px] sm:text-[44px] text-ink">
-              {isConcert ? ts("confirmed_ticket") : ts("confirmed_badge")}
+            <h2 className="font-serif text-[32px] sm:text-[40px] text-ink">
+              {ts("confirmed_badge")}
             </h2>
-            <p className="text-mute mt-3 text-[16px] max-w-lg mx-auto">
-              {form.prenom}, votre {isConcert ? t("ticket") : t("badge")} pour <strong>{event.nom}</strong> {ts("ready")}
+            <p className="text-mute mt-3 text-[15px] max-w-md mx-auto">
+              {form.prenom}, telechargez votre QR code et presentez-le a l&apos;entree de <strong>{event.nom}</strong>
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-6">
-            {/* Badge recto/verso for conference/hackathon */}
-            {!isConcert && (
-              <div className="relative">
-                <div className="w-[380px] bg-ink rounded-2xl overflow-hidden shadow-float" id="badge-print">
-                  {!showVerso ? (
-                    <>
-                      {/* RECTO */}
-                      <div className="bg-gold px-6 py-4 flex items-center justify-between">
-                        {event.logoUrl && (
-                          <Image src={event.logoUrl} alt="" width={28} height={28} className="rounded-md object-cover" />
-                        )}
-                        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: "#0A0A0A", letterSpacing: "0.04em" }}>AIKO</span>
-                        <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.2em", color: "#0A0A0A", fontWeight: 600 }}>{t("badge")}</span>
-                      </div>
-
-                      {event.coverUrl && (
-                        <div className="mx-5 mt-4 rounded-lg overflow-hidden">
-                          <Image src={event.coverUrl} alt="" width={340} height={100} className="w-full h-[100px] object-cover" />
-                        </div>
-                      )}
-
-                      <div className="px-6 py-4">
-                        <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>Evenement</p>
-                        <p style={{ fontSize: 15, color: "#C8A951", fontWeight: 600, marginTop: 4 }}>{event.nom}</p>
-                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{formatDateRange(event.dateDebut, event.dateFin)}</p>
-                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{event.lieu} · {event.ville}</p>
-                      </div>
-
-                      <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "0 24px" }} />
-
-                      <div className="px-6 pt-4 pb-3">
-                        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#fff", lineHeight: 1.2 }}>
-                          {form.prenom} {form.nom}
-                        </p>
-                        {form.organisation && (
-                          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{form.organisation}</p>
-                        )}
-                      </div>
-
-                      <div className="px-6 pb-4 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span style={{ fontSize: 9, color: "#C8A951", fontWeight: 600 }}>N°</span>
-                          <span style={{ fontSize: 16, color: "#fff", fontWeight: 700, fontFamily: "monospace" }}>{String(ticketNum || 1).padStart(4, "0")}</span>
-                        </div>
-                        <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.15em" }}>{event.type.toUpperCase()}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* VERSO */}
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <div className="py-4">
-                          <QRCodeSVG
-                            value={JSON.stringify({
-                              ref: displayRef,
-                              event: event.nom,
-                              name: `${form.prenom} ${form.nom}`,
-                              email: form.email,
-                              type: "badge",
-                              ticket: ticketNum,
-                            })}
-                            size={160}
-                            bgColor="transparent"
-                            fgColor="#C8A951"
-                            level="M"
-                          />
-                        </div>
-
-                        <div className="text-center mt-4">
-                          <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>{t("ref")}</p>
-                          <p style={{ fontSize: 16, color: "#C8A951", fontWeight: 600, marginTop: 4, fontFamily: "monospace" }}>{displayRef}</p>
-                        </div>
-
-                        <div className="text-center mt-4">
-                          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{form.prenom} {form.nom}</p>
-                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 3 }}>{form.email}</p>
-                        </div>
-
-                        <div className="text-center mt-4">
-                          <p style={{ fontSize: 10, color: "#C8A951", fontWeight: 600 }}>{event.nom}</p>
-                        </div>
-
-                        {event.logoUrl && (
-                          <div className="mt-4">
-                            <Image src={event.logoUrl} alt="" width={36} height={36} className="rounded-lg object-cover" />
-                          </div>
-                        )}
-
-                        <div className="mt-4">
-                          <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.3em", color: "rgba(255,255,255,0.25)" }}>
-                            {t("scan_badge")}
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => setShowVerso(!showVerso)}
-                  className="absolute -top-3 -right-3 w-8 h-8 bg-gold rounded-full flex items-center justify-center shadow-lg hover:bg-gold2 transition"
-                  title={showVerso ? "Voir recto" : "Voir verso"}
-                >
-                  <RotateCw className="w-4 h-4 text-ink" />
-                </button>
-                <p className="text-center mt-3 text-[11px] text-mute">{showVerso ? "Verso (dos)" : "Recto (face)"}</p>
+            <div className="w-[340px] bg-ink rounded-2xl overflow-hidden shadow-float">
+              <div className="bg-gold px-6 py-3 flex items-center justify-center">
+                <span className="font-serif text-[18px] font-bold text-ink tracking-wide">AIKO BOARD</span>
               </div>
-            )}
 
-            {/* Ticket concert with places */}
-            {isConcert && (
-              <div className="w-[380px] bg-ink rounded-2xl overflow-hidden shadow-float" id="badge-print">
-                <div className="bg-gold px-6 py-4 flex items-center justify-between">
-                  {event.logoUrl && (
-                    <Image src={event.logoUrl} alt="" width={28} height={28} className="rounded-md object-cover" />
-                  )}
-                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: "#0A0A0A", letterSpacing: "0.04em" }}>AIKO</span>
-                  <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.2em", color: "#0A0A0A", fontWeight: 600 }}>{t("ticket")}</span>
-                </div>
+              <div className="px-6 pt-5 text-center">
+                <p className="text-[13px] text-gold font-semibold">{event.nom}</p>
+                <p className="text-[11px] text-cream/40 mt-1">{formatDateRange(event.dateDebut, event.dateFin)} · {event.lieu}</p>
+              </div>
 
-                <div className="px-6 pt-5 pb-3">
-                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#fff", lineHeight: 1.2 }}>{form.prenom} {form.nom}</p>
-                </div>
+              <div className="flex items-center justify-center py-6">
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    ref: displayRef,
+                    event: event.nom,
+                    name: `${form.prenom} ${form.nom}`,
+                    type: isConcert ? "ticket" : "badge",
+                    ticket: ticketNum,
+                  })}
+                  size={180}
+                  bgColor="transparent"
+                  fgColor="#C8A951"
+                  level="M"
+                />
+              </div>
 
-                <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "0 24px" }} />
+              <div className="text-center pb-2">
+                <p className="text-[10px] text-cream/40 uppercase tracking-widest">Reference</p>
+                <p className="text-[22px] text-cream font-bold font-mono mt-1">{displayRef}</p>
+              </div>
 
-                <div className="px-6 py-4">
-                  <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>Evenement</p>
-                  <p style={{ fontSize: 15, color: "#C8A951", fontWeight: 600, marginTop: 4 }}>{event.nom}</p>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{formatDateRange(event.dateDebut, event.dateFin)}</p>
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{event.lieu} · {event.ville}</p>
-                </div>
-
-                <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "0 24px" }} />
-
-                <div className="px-6 py-3 flex items-center justify-between">
-                  <div>
-                    <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>{t("ref")}</p>
-                    <p style={{ fontSize: 14, color: "#C8A951", fontWeight: 600, marginTop: 2, fontFamily: "monospace" }}>{displayRef}</p>
-                  </div>
-                  {ticketNum > 0 && (
-                    <div className="text-right">
-                      <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>{t("ticket_no")}</p>
-                      <p style={{ fontSize: 18, color: "#fff", fontWeight: 700, marginTop: 2, fontFamily: "monospace" }}>{String(ticketNum).padStart(4, "0")}</p>
-                    </div>
-                  )}
-                </div>
-
-                {!isFree && (
-                  <>
-                    <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "0 24px" }} />
-                    <div className="px-6 py-2">
-                      <div className="flex items-center justify-between">
-                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{t("amount")}</p>
-                        <p style={{ fontSize: 14, color: "#fff", fontWeight: 500 }}>{new Intl.NumberFormat("fr-FR").format(price)} XOF</p>
-                      </div>
-                    </div>
-                  </>
+              <div className="text-center pb-5">
+                <p className="text-[14px] text-cream font-semibold">{form.prenom} {form.nom}</p>
+                {form.organisation && (
+                  <p className="text-[11px] text-cream/40 mt-1">{form.organisation}</p>
                 )}
-
-                {/* Places */}
-                <div className="mx-6 my-2 rounded-lg px-4 py-2 flex items-center justify-between" style={{ background: "rgba(200,169,81,0.08)" }}>
-                  <p style={{ fontSize: 10, color: "#C8A951", fontWeight: 600 }}>Places</p>
-                  <p style={{ fontSize: 13, color: "#C8A951", fontWeight: 700 }}>
-                    {event._count.participants} / {event.capacite}
-                  </p>
-                </div>
-
-                <div className="px-6 py-5 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.03)" }}>
-                  <QRCodeSVG
-                    value={JSON.stringify({
-                      ref: displayRef,
-                      event: event.nom,
-                      name: `${form.prenom} ${form.nom}`,
-                      email: form.email,
-                      type: "ticket",
-                      ticket: ticketNum,
-                    })}
-                    size={150}
-                    bgColor="transparent"
-                    fgColor="#C8A951"
-                    level="M"
-                  />
-                </div>
-
-                <div className="px-6 pb-4 text-center">
-                  <p style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.3em", color: "rgba(255,255,255,0.3)" }}>{t("scan_ticket")}</p>
-                </div>
               </div>
-            )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  const el = document.getElementById("badge-print");
-                  if (!el) return;
-                  const w = window.open("", "_blank", "width=420,height=750");
-                  if (!w) return;
-                  w.document.write(`<!DOCTYPE html><html><head><title>${isConcert ? "Ticket" : "Badge"} AIKO — ${displayRef}</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}@media print{body{margin:0;padding:0}}</style></head><body>${el.innerHTML}<script>window.onload=function(){window.print()}<\/script></body></html>`);
-                  w.document.close();
-                }}
-                className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-3 text-[14px] font-semibold"
-              >
-                <Printer className="w-4 h-4" />
-                {ts("print")}
-              </button>
-              <button
-                onClick={() => {
-                  const svgEl = document.querySelector("#badge-print svg") as SVGSVGElement | null;
-                  if (!svgEl) return;
-                  const canvas = document.createElement("canvas");
-                  canvas.width = 300;
-                  canvas.height = 300;
-                  const ctx = canvas.getContext("2d");
-                  if (!ctx) return;
-                  const svgData = new XMLSerializer().serializeToString(svgEl);
-                  const img = new window.Image();
-                  img.onload = () => {
-                    ctx.fillStyle = "#0A0A0A";
-                    ctx.fillRect(0, 0, 300, 300);
-                    ctx.drawImage(img, 0, 0, 300, 300);
-                    const qrDataUrl = canvas.toDataURL("image/png");
-                    if (isConcert) {
-                      const pdf = generateTicketPDF({
-                        eventName: event.nom,
-                        eventDate: formatDateRange(event.dateDebut, event.dateFin),
-                        eventLieu: `${event.lieu} · ${event.ville}`,
-                        participantName: `${form.prenom} ${form.nom}`,
-                        email: form.email,
-                        reference: displayRef,
-                        ticketNumber: ticketNum || 1,
-                        price,
-                        qrDataUrl,
-                        capacite: event.capacite,
-                        totalSold: event._count.participants,
-                      });
-                      pdf.save(`ticket-${displayRef}.pdf`);
-                    } else {
-                      const pdf = generateSingleBadgePDF({
-                        eventName: event.nom,
-                        eventDate: formatDateRange(event.dateDebut, event.dateFin),
-                        eventLieu: `${event.lieu} · ${event.ville}`,
-                        eventType: event.type,
-                        participant: {
-                          name: `${form.prenom} ${form.nom}`,
-                          organisation: form.organisation || undefined,
-                          email: form.email,
-                          reference: displayRef,
-                          badgeNumber: ticketNum || 1,
-                          qrDataUrl,
-                        },
-                      });
-                      pdf.save(`badge-${displayRef}.pdf`);
-                    }
-                  };
-                  img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-                }}
-                className="btn-press inline-flex items-center gap-2 bg-ink hover:bg-ink2 text-cream rounded-full px-6 py-3 text-[14px] font-medium"
-              >
-                <Download className="w-4 h-4" />
-                PDF
-              </button>
+              <div className="text-center pb-4">
+                <p className="text-[8px] text-cream/20 uppercase tracking-[0.3em]">Presentez ce QR code a l&apos;entree</p>
+              </div>
             </div>
+
+            <button
+              onClick={handleDownloadQR}
+              disabled={downloading}
+              className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold disabled:opacity-50"
+            >
+              {downloading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Download className="w-5 h-5" />
+              )}
+              {downloading ? "Generation..." : "Telecharger mon QR code (PDF)"}
+            </button>
           </div>
 
           <div className="mt-12 text-center">

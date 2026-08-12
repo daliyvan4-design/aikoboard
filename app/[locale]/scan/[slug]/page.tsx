@@ -14,7 +14,9 @@ import {
   Loader2,
   RotateCcw,
   Camera,
+  Printer,
 } from "lucide-react";
+import { generateSinglePvcBadge } from "@/lib/generate-pvc-badge-pdf";
 
 interface ScanResult {
   status: "success" | "error" | "warning";
@@ -22,14 +24,34 @@ interface ScanResult {
   subtitle: string;
   detail?: string;
   ticketNumber?: number;
+  participant?: {
+    prenom: string;
+    nom: string;
+    email: string;
+    organisation?: string;
+    reference: string;
+    ticketNumber: number;
+    type: string;
+    event: {
+      nom: string;
+      slug: string;
+      type: string;
+      dateDebut?: string;
+      dateFin?: string;
+    };
+  };
 }
 
 interface EventInfo {
   nom: string;
   slug: string;
   type: string;
+  lieu: string;
+  ville: string;
+  dateDebut: string;
+  dateFin: string;
+  organisateur: string;
   _count: { participants: number };
-  checkedInCount?: number;
 }
 
 export default function ScanPage() {
@@ -43,6 +65,7 @@ export default function ScanPage() {
   const [scanCount, setScanCount] = useState(0);
   const [totalCheckedIn, setTotalCheckedIn] = useState(0);
   const [cameraError, setCameraError] = useState("");
+  const [printing, setPrinting] = useState(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrRef = useRef<unknown>(null);
   const processingRef = useRef(false);
@@ -97,10 +120,9 @@ export default function ScanPage() {
           status: "success",
           title: `${data.data.prenom} ${data.data.nom}`,
           subtitle: data.data.organisation ?? data.data.email,
-          detail: data.data.type === "ticket"
-            ? `Ticket N°${String(data.data.ticketNumber).padStart(4, "0")}`
-            : `Badge N°${String(data.data.ticketNumber).padStart(4, "0")}`,
+          detail: `N°${String(data.data.ticketNumber).padStart(4, "0")}`,
           ticketNumber: data.data.ticketNumber,
+          participant: data.data,
         });
         setScanCount((c) => c + 1);
         setTotalCheckedIn((c) => c + 1);
@@ -115,8 +137,9 @@ export default function ScanPage() {
           status: "warning",
           title: `${data.data.prenom} ${data.data.nom}`,
           subtitle: `Deja scanne${at ? ` a ${at}` : ""}`,
-          detail: `Ticket N°${String(data.data.ticketNumber).padStart(4, "0")}`,
+          detail: `N°${String(data.data.ticketNumber).padStart(4, "0")}`,
           ticketNumber: data.data.ticketNumber,
+          participant: data.data,
         });
       } else {
         setResult({
@@ -135,6 +158,56 @@ export default function ScanPage() {
 
     processingRef.current = false;
   }, []);
+
+  const handlePrintBadge = async () => {
+    if (!result?.participant || !event) return;
+    setPrinting(true);
+
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const p = result.participant;
+
+      const qrValue = JSON.stringify({
+        ref: p.reference,
+        event: event.nom,
+        name: `${p.prenom} ${p.nom}`,
+        type: "badge",
+        ticket: p.ticketNumber,
+      });
+
+      const qrDataUrl = await QRCode.toDataURL(qrValue, {
+        width: 512,
+        margin: 1,
+        color: { dark: "#C8A951", light: "#0A0A0A" },
+        errorCorrectionLevel: "M",
+      });
+
+      const fmtDate = (d: string) =>
+        new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+      const pdf = generateSinglePvcBadge({
+        eventName: event.nom,
+        eventDate: `${fmtDate(event.dateDebut)} — ${fmtDate(event.dateFin)}`,
+        eventLieu: `${event.lieu} · ${event.ville}`,
+        eventType: event.type,
+        organisateur: event.organisateur,
+        participant: {
+          name: `${p.prenom} ${p.nom}`,
+          organisation: p.organisation ?? undefined,
+          email: p.email,
+          reference: p.reference,
+          badgeNumber: p.ticketNumber,
+          qrDataUrl,
+        },
+      });
+
+      pdf.save(`badge-${p.reference}.pdf`);
+    } catch (err) {
+      console.error("Badge print error:", err);
+    }
+
+    setPrinting(false);
+  };
 
   const startScanner = useCallback(async () => {
     if (!scannerRef.current) return;
@@ -172,7 +245,7 @@ export default function ScanPage() {
       setCameraError(
         err instanceof Error
           ? err.message
-          : "Impossible d’acceder a la camera"
+          : "Impossible d'acceder a la camera"
       );
     }
   }, [handleQrData]);
@@ -225,7 +298,7 @@ export default function ScanPage() {
             {event?.nom ?? "Chargement..."}
           </h1>
           <p className="text-[12px] text-cream/40 mt-1 uppercase tracking-wider">
-            Scanner les badges
+            Scanner &amp; imprimer les badges
           </p>
         </div>
 
@@ -315,9 +388,26 @@ export default function ScanPage() {
                 )}
               </div>
             </div>
+
+            {/* Print PVC badge button — shown on success or already checked in */}
+            {result.participant && (
+              <button
+                onClick={handlePrintBadge}
+                disabled={printing}
+                className="mt-4 w-full bg-gold hover:bg-gold2 text-ink rounded-xl py-3.5 text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {printing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Printer className="w-4 h-4" />
+                )}
+                {printing ? "Generation du badge..." : "Imprimer badge PVC"}
+              </button>
+            )}
+
             <button
               onClick={resetScan}
-              className="mt-4 w-full bg-cream/10 hover:bg-cream/15 text-cream rounded-xl py-3 text-[13px] font-medium flex items-center justify-center gap-2"
+              className="mt-3 w-full bg-cream/10 hover:bg-cream/15 text-cream rounded-xl py-3 text-[13px] font-medium flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
               Scanner suivant

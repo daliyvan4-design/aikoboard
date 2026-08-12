@@ -18,12 +18,8 @@ import {
   Download,
   Search,
   ScanLine,
-  TrendingUp,
   BarChart3,
-  DollarSign,
-  Printer,
 } from "lucide-react";
-import { generatePvcBadgePDF } from "@/lib/generate-pvc-badge-pdf";
 
 interface Participant {
   id: string;
@@ -75,7 +71,6 @@ export default function OrganisateurDashboard() {
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/events/${slug}`)
@@ -107,58 +102,6 @@ export default function OrganisateurDashboard() {
   const totalRevenue = event.participants.reduce((sum, p) => sum + p.montant, 0);
   const checkedInCount = event.participants.filter((p) => p.checkedIn).length;
   const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenements/${event.slug}`;
-
-  const handlePrintPvcBadges = async () => {
-    if (event.participants.length === 0) return;
-    setPrinting(true);
-
-    try {
-      const QRCode = (await import("qrcode")).default;
-
-      const qrDataUrls: string[] = [];
-      for (const p of event.participants) {
-        const qrValue = JSON.stringify({
-          ref: p.reference,
-          event: event.nom,
-          name: `${p.prenom} ${p.nom}`,
-          type: "badge",
-          ticket: p.ticketNumber,
-        });
-        const dataUrl = await QRCode.toDataURL(qrValue, {
-          width: 512,
-          margin: 1,
-          color: { dark: "#C8A951", light: "#0A0A0A" },
-          errorCorrectionLevel: "M",
-        });
-        qrDataUrls.push(dataUrl);
-      }
-
-      const fmtDate = (d: string) =>
-        new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-
-      const pdf = generatePvcBadgePDF({
-        eventName: event.nom,
-        eventDate: `${fmtDate(event.dateDebut)} — ${fmtDate(event.dateFin)}`,
-        eventLieu: `${event.lieu} · ${event.ville}`,
-        eventType: event.type,
-        organisateur: event.organisateur,
-        participants: event.participants.map((p, i) => ({
-          name: `${p.prenom} ${p.nom}`,
-          organisation: p.organisation ?? undefined,
-          email: p.email,
-          reference: p.reference,
-          badgeNumber: p.ticketNumber,
-          qrDataUrl: qrDataUrls[i],
-        })),
-      });
-
-      pdf.save(`${event.slug}-badges-pvc.pdf`);
-    } catch (err) {
-      console.error("Badge PDF generation error:", err);
-    }
-
-    setPrinting(false);
-  };
 
   const filtered = event.participants.filter((p) => {
     if (!search) return true;
@@ -218,22 +161,8 @@ export default function OrganisateurDashboard() {
               className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-3.5 text-[14px] font-semibold"
             >
               <ScanLine className="w-5 h-5" />
-              Scanner les badges
+              Scanner &amp; imprimer badges
             </Link>
-            {!isConcert && event.participants.length > 0 && (
-              <button
-                onClick={handlePrintPvcBadges}
-                disabled={printing}
-                className="btn-press inline-flex items-center gap-2.5 bg-cream/10 hover:bg-cream/15 text-cream border border-cream/20 rounded-full px-6 py-3.5 text-[14px] font-semibold disabled:opacity-50"
-              >
-                {printing ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Printer className="w-5 h-5" />
-                )}
-                {printing ? `Generation (${event.participants.length} badges)...` : `Imprimer badges PVC (${event.participants.length})`}
-              </button>
-            )}
           </div>
         </div>
 
