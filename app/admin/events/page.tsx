@@ -319,15 +319,6 @@ export default function AdminEventsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {!isReadOnly && (
-                    <button
-                      onClick={() => openEdit(evt)}
-                      className="w-9 h-9 rounded-xl bg-cream2 border border-line flex items-center justify-center text-mute hover:text-ink transition-colors"
-                      title="Modifier"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                  )}
                   <Link
                     href={`/fr/evenements/${evt.slug}`}
                     target="_blank"
@@ -338,6 +329,13 @@ export default function AdminEventsPage() {
                   </Link>
                   {!isReadOnly && (
                     <>
+                      <button
+                        onClick={() => openEdit(evt)}
+                        className="w-9 h-9 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold hover:bg-gold/20 transition-colors"
+                        title="Modifier"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
                       <Link
                         href={`/fr/organisateur/${evt.slug}`}
                         target="_blank"
