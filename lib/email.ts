@@ -52,10 +52,10 @@ export async function sendConfirmationEmail(input: SendConfirmationInput) {
     <!-- Body -->
     <div style="background:#FFFFFF;padding:32px;border-left:1px solid #E8E6E1;border-right:1px solid #E8E6E1">
       <p style="font-family:Georgia,serif;font-size:22px;color:#0A0A0A;margin:0 0 8px;line-height:1.3">
-        ${ticketLabel} confirme !
+        Inscription confirmee !
       </p>
       <p style="font-size:14px;color:#8A8680;margin:0 0 24px;line-height:1.5">
-        ${input.participantName}, votre ${ticketLabel.toLowerCase()} pour <strong style="color:#0A0A0A">${input.eventName}</strong> est pret.
+        ${input.participantName}, votre inscription pour <strong style="color:#0A0A0A">${input.eventName}</strong> est confirmee.
       </p>
 
       <!-- Info card -->
@@ -90,7 +90,7 @@ export async function sendConfirmationEmail(input: SendConfirmationInput) {
       </div>
 
       <p style="font-size:13px;color:#8A8680;margin:0 0 8px;line-height:1.5">
-        Presentez ce ${ticketLabel.toLowerCase()} (imprime ou sur telephone) a l'entree. Le QR code sera scanne pour valider votre acces.
+        Presentez ce QR code a l'entree pour recevoir votre badge imprime.
       </p>
     </div>
 
@@ -108,7 +108,7 @@ export async function sendConfirmationEmail(input: SendConfirmationInput) {
     const result = await resend.emails.send({
       from: FROM,
       to: input.to,
-      subject: `${ticketLabel} confirme — ${input.eventName} (${input.reference})`,
+      subject: `Inscription confirmee — ${input.eventName} (${input.reference})`,
       html,
     });
     console.log(`[email] Confirmation sent to ${input.to}: ${result.data?.id}`);
@@ -177,7 +177,7 @@ export async function sendReminderEmail(input: SendReminderInput) {
       </div>
 
       <p style="font-size:13px;color:#8A8680;margin:0;line-height:1.5">
-        N'oubliez pas votre badge ou ticket (imprime ou sur telephone). A demain !
+        N'oubliez pas votre QR code (imprime ou sur telephone) pour recevoir votre badge a l'entree. A demain !
       </p>
     </div>
 
