@@ -5,6 +5,12 @@ import { getToken } from "next-auth/jwt";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+function getSecret() {
+  const s = process.env.NEXTAUTH_SECRET;
+  if (!s) throw new Error("NEXTAUTH_SECRET is required");
+  return s;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -13,8 +19,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith("/api/admin")) {
+    const token = await getToken({ req: request, secret: getSecret() });
+    if (!token) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/admin")) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET || "aiko-dev-secret-change-in-prod" });
+    const token = await getToken({ req: request, secret: getSecret() });
     if (!token) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
