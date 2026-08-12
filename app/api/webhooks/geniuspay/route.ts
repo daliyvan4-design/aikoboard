@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyWebhookSignature, type WebhookPayload } from "@/lib/geniuspay";
-import { sendConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
+import { applyPaymentSuccess } from "@/lib/payment-flow";
+import { log } from "@/lib/logger";
+
+/** Tolérance d'horloge acceptée pour un webhook (anti-rejeu). */
+const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
+
+/** Normalise un timestamp unix en millisecondes (secondes ou ms acceptées). */
+function toMillis(value: string | number | undefined): number | null {
+  if (value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n > 1e12 ? n : n * 1000;
+}
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-webhook-signature") ?? "";
@@ -11,10 +23,7 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text();
 
   if (!verifyWebhookSignature(timestamp, rawBody, signature)) {
-    return NextResponse.json(
-      { error: "Invalid signature" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   let payload: WebhookPayload;
@@ -24,80 +33,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // 1. Fraîcheur : une signature valide capturee ne doit pas rester
+  // rejouable indefiniment.
+  const sentAt = toMillis(timestamp) ?? toMillis(payload.timestamp);
+  if (sentAt === null) {
+    return NextResponse.json({ error: "Missing timestamp" }, { status: 400 });
+  }
+  if (Math.abs(Date.now() - sentAt) > MAX_CLOCK_SKEW_MS) {
+    log.warn("Webhook hors fenetre temporelle", { route: "POST /api/webhooks/geniuspay", event });
+    return NextResponse.json({ error: "Timestamp out of range" }, { status: 400 });
+  }
+
+  // 2. Idempotence : le meme evenement n'est traite qu'une fois.
+  const eventId = typeof payload.id === "string" && payload.id ? payload.id : null;
+  if (!eventId) {
+    return NextResponse.json({ error: "Missing event id" }, { status: 400 });
+  }
+
+  try {
+    await prisma.webhookEvent.create({
+      data: { id: eventId, source: "geniuspay", event },
+    });
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "P2002") {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    throw err;
+  }
+
+  const { metadata } = payload.data;
+
   switch (event) {
     case "payment.success": {
-      const { metadata } = payload.data;
-      const payRef = metadata?.pay_ref;
-
-      if (payRef) {
-        await prisma.payment.updateMany({
-          where: { reference: payRef },
-          data: {
-            statut: "completed",
-            geniusRef: payload.data.reference?.toString(),
-            methode: payload.data.payment_method,
-          },
-        });
-      }
-
-      const participantRef = metadata?.participant_ref;
-      if (participantRef) {
-        await prisma.participant.updateMany({
-          where: { reference: participantRef },
-          data: {
-            statut: "confirme",
-            paymentRef: payRef,
-          },
-        });
-
-        const participant = await prisma.participant.findUnique({
-          where: { reference: participantRef },
-          include: { event: true },
-        });
-        if (participant) {
-          const fmtDate = (d: Date) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-          sendConfirmationEmail({
-            to: participant.email,
-            participantName: `${participant.prenom} ${participant.nom}`,
-            eventName: participant.event.nom,
-            eventDate: `${participant.event.dateDebut.toLocaleDateString("fr-FR", { day: "numeric" })} — ${fmtDate(participant.event.dateFin)}`,
-            eventLieu: `${participant.event.lieu} · ${participant.event.ville}`,
-            reference: participant.reference,
-            ticketNumber: participant.ticketNumber,
-            type: participant.type as "badge" | "ticket",
-            amount: participant.montant,
-          }).catch(() => {});
-
-          sendAdminNotificationEmail({
-            type: "payment_received",
-            eventName: participant.event.nom,
-            participantName: `${participant.prenom} ${participant.nom}`,
-            reference: participant.reference,
-            amount: participant.montant,
-          }).catch(() => {});
-        }
-      }
-
-      const eventSlug = metadata?.event_slug;
-      const type = metadata?.type;
-      if (eventSlug && type === "event_creation") {
-        await prisma.event.updateMany({
-          where: { slug: eventSlug },
-          data: {
-            statut: "actif",
-            paymentRef: payRef,
-          },
-        });
-      }
-
-      console.log(`[GeniusPay] Payment completed: ${payRef ?? "n/a"}`);
+      await applyPaymentSuccess({
+        payRef: metadata?.pay_ref,
+        participantRef: metadata?.participant_ref,
+        eventSlug: metadata?.event_slug,
+        type: metadata?.type,
+        geniusRef: payload.data.reference?.toString(),
+        method: payload.data.payment_method,
+      });
+      log.info("Paiement complete", { ref: metadata?.pay_ref ?? "n/a", event });
       break;
     }
 
     case "payment.failed":
     case "payment.cancelled":
     case "payment.expired": {
-      const { metadata, status } = payload.data;
+      const { status } = payload.data;
       const payRef = metadata?.pay_ref;
       const dbStatus = status === "failed" ? "echoue" : status === "cancelled" ? "annule" : "expire";
 
@@ -111,17 +95,16 @@ export async function POST(req: NextRequest) {
       const participantRef = metadata?.participant_ref;
       if (participantRef) {
         await prisma.participant.updateMany({
-          where: { reference: participantRef },
+          where: { reference: participantRef, statut: { not: "confirme" } },
           data: { statut: "echoue" },
         });
       }
 
-      console.log(`[GeniusPay] Payment ${status}: ${payRef ?? "n/a"}`);
+      log.info(`Paiement ${status}`, { ref: payRef ?? "n/a", event });
       break;
     }
 
     case "payment.refunded": {
-      const { metadata, amount } = payload.data;
       const payRef = metadata?.pay_ref;
 
       if (payRef) {
@@ -131,12 +114,12 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      console.log(`[GeniusPay] Payment refunded: ${payRef ?? "n/a"}`);
+      log.info("Paiement rembourse", { ref: payRef ?? "n/a", event });
       break;
     }
 
     default:
-      console.log(`[GeniusPay] Unhandled event: ${event}`);
+      log.warn("Webhook non gere", { event });
   }
 
   return NextResponse.json({ received: true });

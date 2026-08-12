@@ -197,6 +197,7 @@ model Event {
   contactTel      String?
   statut          String        @default("actif")
   paymentRef      String?
+  manageToken     String?       @unique
   participants    Participant[]
   payments        Payment[]
   createdAt       DateTime      @default(now())
@@ -278,6 +279,7 @@ model Participant {
   checkedInAt   DateTime?
   createdAt     DateTime @default(now())
 
+  @@unique([eventId, ticketNumber])
   @@index([eventId])
 }
 
@@ -299,4 +301,14 @@ model Payment {
   updatedAt     DateTime @updatedAt
 
   @@index([eventId])
+}
+
+// Journal des webhooks déjà traités — garantit l'idempotence (anti-rejeu).
+model WebhookEvent {
+  id         String   @id
+  source     String   @default("geniuspay")
+  event      String
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
 }

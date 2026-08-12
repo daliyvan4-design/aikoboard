@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendReminderEmail } from "@/lib/email";
+import { log } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  console.log(`[cron/reminders] Sent ${sent} reminders for ${events.length} events`);
+  log.info(`${sent} rappels envoyes pour ${events.length} evenements`, { route: "GET /api/cron/reminders" });
 
   return NextResponse.json({
     success: true,

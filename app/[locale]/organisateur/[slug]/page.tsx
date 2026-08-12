@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
@@ -19,7 +19,9 @@ import {
   Search,
   ScanLine,
   BarChart3,
+  Lock,
 } from "lucide-react";
+import { loadManageToken, storeManageToken } from "@/lib/manage-token";
 
 interface Participant {
   id: string;
@@ -53,33 +55,65 @@ interface EventData {
   prixBadge: number;
   ticketPayant: boolean;
   prixTicket: number;
-  contactEmail: string;
   statut: string;
+  checkedInCount: number;
   _count: { participants: number };
-  participants: Participant[];
 }
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
-export default function OrganisateurDashboard() {
+function OrganisateurDashboardContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const slug = params.slug as string;
 
   const [event, setEvent] = useState<EventData | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch(`/api/events/${slug}`)
-      .then((r) => r.json())
-      .then((d) => {
+    // Le lien prive (?token=...) prime, sinon on reprend celui memorise
+    // par le navigateur qui a cree l'evenement.
+    const urlToken = searchParams.get("token") ?? "";
+    if (urlToken) storeManageToken(slug, urlToken);
+    const token = urlToken || loadManageToken(slug);
+
+    const loadEvent = async () => {
+      try {
+        const d = await fetch(`/api/events/${slug}`).then((r) => r.json());
         if (d.success) setEvent(d.data);
-      })
-      .finally(() => setLoading(false));
-  }, [slug]);
+      } catch {
+        // l'ecran "evenement introuvable" prend le relais
+      }
+    };
+
+    const loadParticipants = async () => {
+      if (!token) {
+        setAccessDenied(true);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/events/${slug}/participants?token=${encodeURIComponent(token)}`,
+        );
+        if (!res.ok) {
+          setAccessDenied(true);
+          return;
+        }
+        const d = await res.json();
+        if (d.success) setParticipants(d.data);
+      } catch {
+        setAccessDenied(true);
+      }
+    };
+
+    Promise.all([loadEvent(), loadParticipants()]).finally(() => setLoading(false));
+  }, [slug, searchParams]);
 
   if (loading) {
     return (
@@ -99,11 +133,13 @@ export default function OrganisateurDashboard() {
   }
 
   const isConcert = event.type === "concert";
-  const totalRevenue = event.participants.reduce((sum, p) => sum + p.montant, 0);
-  const checkedInCount = event.participants.filter((p) => p.checkedIn).length;
+  const totalRevenue = participants.reduce((sum, p) => sum + p.montant, 0);
+  const checkedInCount = accessDenied
+    ? event.checkedInCount
+    : participants.filter((p) => p.checkedIn).length;
   const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenements/${event.slug}`;
 
-  const filtered = event.participants.filter((p) => {
+  const filtered = participants.filter((p) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -225,7 +261,7 @@ export default function OrganisateurDashboard() {
                 <p className="text-[11px] text-mute uppercase tracking-wider">Panier moyen</p>
                 <p className="font-serif text-[24px] text-ink mt-1">
                   {new Intl.NumberFormat("fr-FR").format(
-                    Math.round(totalRevenue / (event.participants.filter((p) => p.montant > 0).length || 1))
+                    Math.round(totalRevenue / (participants.filter((p) => p.montant > 0).length || 1))
                   )} <span className="text-[12px] text-mute">XOF</span>
                 </p>
               </div>
@@ -233,7 +269,7 @@ export default function OrganisateurDashboard() {
                 <p className="text-[11px] text-mute uppercase tracking-wider">Taux de conversion</p>
                 <p className="font-serif text-[24px] text-ink mt-1">
                   {event._count.participants > 0
-                    ? Math.round((event.participants.filter((p) => p.montant > 0).length / event._count.participants) * 100)
+                    ? Math.round((participants.filter((p) => p.montant > 0).length / event._count.participants) * 100)
                     : 0}
                   <span className="text-[12px] text-mute"> %</span>
                 </p>
@@ -245,7 +281,7 @@ export default function OrganisateurDashboard() {
               <div className="space-y-2">
                 {(() => {
                   const byDay: Record<string, { count: number; revenue: number }> = {};
-                  event.participants.forEach((p) => {
+                  participants.forEach((p) => {
                     const day = new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
                     if (!byDay[day]) byDay[day] = { count: 0, revenue: 0 };
                     byDay[day].count++;
@@ -273,7 +309,21 @@ export default function OrganisateurDashboard() {
           </div>
         )}
 
+        {/* Acces prive requis */}
+        {accessDenied && (
+          <div className="bg-white border border-line rounded-2xl px-6 py-12 text-center">
+            <Lock className="w-10 h-10 text-gold mx-auto mb-4" />
+            <h2 className="font-serif text-[22px] text-ink mb-2">Liste des inscrits protegee</h2>
+            <p className="text-[14px] text-mute max-w-md mx-auto leading-relaxed">
+              Les coordonnees de vos participants ne sont accessibles qu&apos;avec votre lien
+              prive de gestion. Il vous a ete envoye par email a la creation de
+              l&apos;evenement — ouvrez cette page depuis ce lien.
+            </p>
+          </div>
+        )}
+
         {/* Participant list */}
+        {!accessDenied && (
         <div className="bg-white border border-line rounded-2xl overflow-hidden">
           <div className="px-6 py-5 border-b border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -295,7 +345,7 @@ export default function OrganisateurDashboard() {
                   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
                   const sep = ";";
                   const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Check-in", "Date inscription"].join(sep);
-                  const rows = event.participants.map((p) =>
+                  const rows = participants.map((p) =>
                     [
                       String(p.ticketNumber).padStart(4, "0"),
                       p.reference,
@@ -378,7 +428,22 @@ export default function OrganisateurDashboard() {
             </div>
           )}
         </div>
+        )}
       </div>
     </section>
+  );
+}
+
+export default function OrganisateurDashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+        </div>
+      }
+    >
+      <OrganisateurDashboardContent />
+    </Suspense>
   );
 }

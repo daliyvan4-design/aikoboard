@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { log } from "@/lib/logger";
+import { EVENT_CREATION_PRICE_XOF } from "@/lib/pricing";
+
 function slugify(text: string) {
   return text
     .toLowerCase()
@@ -19,8 +23,12 @@ async function uniqueSlug(base: string): Promise<string> {
     const found = await prisma.event.findUnique({ where: { slug: candidate } });
     if (!found) return candidate;
   }
-  const bytes = require("crypto").randomBytes(3);
-  return `${base}-${bytes.toString("hex")}`;
+  return `${base}-${randomBytes(3).toString("hex")}`;
+}
+
+/** Clé privée d'accès au tableau de bord organisateur. */
+function generateManageToken(): string {
+  return randomBytes(32).toString("hex");
 }
 
 const ALLOWED_TYPES = ["conference", "concert", "seminaire", "gala", "forum", "salon", "festival", "autre"];
@@ -92,14 +100,25 @@ export async function POST(req: NextRequest) {
         coverUrl: typeof body.coverUrl === "string" ? body.coverUrl : null,
         latitude: typeof body.latitude === "number" ? body.latitude : null,
         longitude: typeof body.longitude === "number" ? body.longitude : null,
-        statut: "actif",
-        paymentRef: typeof body.paymentRef === "string" ? body.paymentRef : null,
+        // L'événement n'est publié qu'une fois la création payée :
+        // c'est le webhook GeniusPay (ou la réconciliation serveur) qui
+        // le passe en "actif". Le client ne décide ni du statut ni du paiement.
+        statut: "pending",
+        paymentRef: null,
+        manageToken: generateManageToken(),
       },
     });
 
-    return NextResponse.json({ success: true, slug: event.slug, id: event.id });
-  } catch {
-    console.error("[events] create error");
+    return NextResponse.json({
+      success: true,
+      slug: event.slug,
+      id: event.id,
+      statut: event.statut,
+      manageToken: event.manageToken,
+      creationFee: EVENT_CREATION_PRICE_XOF,
+    });
+  } catch (err) {
+    log.error("Creation evenement impossible", { route: "POST /api/events" }, err);
     return NextResponse.json({ error: "Erreur creation" }, { status: 500 });
   }
 }
@@ -113,8 +132,8 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, data: events });
-  } catch {
-    console.error("[events] list error");
+  } catch (err) {
+    log.error("Liste evenements impossible", { route: "GET /api/events" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

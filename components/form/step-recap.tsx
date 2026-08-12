@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import {
   ArrowLeft,
   Check,
@@ -419,9 +420,9 @@ export function StepRecap({
               <span className="text-[12px] text-mute leading-snug">
                 {t.rich("cgv", {
                   link: (chunks) => (
-                    <a className="text-ink underline" href="/fr/cgu">
+                    <Link className="text-ink underline" href="/fr/cgu">
                       {chunks}
-                    </a>
+                    </Link>
                   ),
                 })}
               </span>

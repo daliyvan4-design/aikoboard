@@ -109,7 +109,7 @@ export default function EventPage() {
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
-  const displayRef = ref || `AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const displayRef = ref;
   const hasLogement = event?.offreLogement && event.residence && event.residence.tarifs.length > 0;
   const selectedTarif = hasLogement ? event!.residence!.tarifs.find((t) => t.id === selectedTarifId) : null;
 
@@ -158,6 +158,7 @@ export default function EventPage() {
     e.preventDefault();
     if (!isFree) return;
     setUploadingPhoto(true);
+    setPayError("");
 
     try {
       const photoBase64 = !isConcert ? await getPhotoBase64() : undefined;
@@ -182,18 +183,29 @@ export default function EventPage() {
       if (data.success) {
         setRef(data.data.reference);
         setTicketNum(data.data.ticketNumber);
+        setStep("done");
       } else {
-        setRef(`AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
+        // Evenement complet, photo refusee, inscriptions fermees... :
+        // on montre la vraie raison plutot qu'un faux QR code.
+        setPayError(
+          data.code === "EVENT_FULL"
+            ? "Cet evenement est complet."
+            : data.error ?? "Inscription impossible. Reessayez.",
+        );
       }
     } catch {
-      setRef(`AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
+      setPayError("Connexion impossible. Verifiez votre reseau et reessayez.");
     }
 
     setUploadingPhoto(false);
-    setStep("done");
   };
 
-  const saveParticipantBeforePay = async (): Promise<{ participantRef?: string; eventSlug?: string }> => {
+  const saveParticipantBeforePay = async (): Promise<{
+    participantRef?: string;
+    eventSlug?: string;
+    abort?: boolean;
+    error?: string;
+  }> => {
     setUploadingPhoto(true);
     try {
       const photoBase64 = !isConcert ? await getPhotoBase64() : undefined;
@@ -210,8 +222,6 @@ export default function EventPage() {
           titre: !isConcert ? form.titre || undefined : undefined,
           photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
-          statut: "pending",
-          montant: price,
           residenceTarifId: selectedTarifId,
         }),
       });
@@ -219,9 +229,19 @@ export default function EventPage() {
       if (data.success) {
         return { participantRef: data.data.reference, eventSlug: event.slug };
       }
-    } catch {}
-    setUploadingPhoto(false);
-    return { eventSlug: event.slug };
+      setUploadingPhoto(false);
+      // Pas d'inscription enregistree = pas de debit.
+      return {
+        abort: true,
+        error:
+          data.code === "EVENT_FULL"
+            ? "Cet evenement est complet."
+            : data.error ?? "Inscription impossible. Reessayez.",
+      };
+    } catch {
+      setUploadingPhoto(false);
+      return { abort: true, error: "Connexion impossible. Reessayez." };
+    }
   };
 
   const handleDownloadQR = async () => {

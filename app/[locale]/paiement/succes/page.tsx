@@ -59,6 +59,18 @@ function SuccessContent() {
   const [loading, setLoading] = useState(!!participantRef);
   const [pollCount, setPollCount] = useState(0);
   const [downloading, setDownloading] = useState(false);
+  const [eventActivated, setEventActivated] = useState<boolean | null>(null);
+
+  // Creation d'evenement : on demande au serveur de verifier le paiement
+  // aupres de GeniusPay et d'activer l'evenement — filet si le webhook
+  // n'est pas arrive.
+  useEffect(() => {
+    if (!payRef || type !== "event_creation") return;
+    fetch(`/api/payments/${encodeURIComponent(payRef)}`)
+      .then((r) => r.json())
+      .then((d) => setEventActivated(d.status === "completed"))
+      .catch(() => setEventActivated(false));
+  }, [payRef, type]);
 
   const fetchParticipant = useCallback(async () => {
     if (!participantRef) return;
@@ -340,14 +352,21 @@ function SuccessContent() {
         )}
 
         {eventSlug && type === "event_creation" && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <Link
-              href={`/${locale}/organisateur/${eventSlug}`}
-              className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold"
-            >
-              Mon dashboard organisateur
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+          <div className="mb-8">
+            <p className="text-[14px] text-mute mb-5 max-w-md mx-auto leading-relaxed">
+              {eventActivated === false
+                ? "Activation en cours. Votre lien prive de gestion vous est envoye par email des confirmation du paiement."
+                : "Votre evenement est actif. Le lien prive de votre tableau de bord vient de vous etre envoye par email — conservez-le."}
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href={`/${locale}/organisateur/${eventSlug}`}
+                className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold"
+              >
+                Mon dashboard organisateur
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         )}
 

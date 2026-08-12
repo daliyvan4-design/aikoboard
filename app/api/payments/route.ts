@@ -9,10 +9,16 @@ import {
   type CreatePaymentInput,
 } from "@/lib/geniuspay";
 import { rateLimit } from "@/lib/rate-limit";
+import { log } from "@/lib/logger";
+import {
+  EVENT_CREATION_PRICE_XOF,
+  MIN_PAYMENT_XOF,
+  expectedParticipantAmount,
+} from "@/lib/pricing";
+import { randomBytes } from "crypto";
 
 function genPayRef() {
-  const bytes = require("crypto").randomBytes(6);
-  return `PAY-${bytes.toString("hex").toUpperCase()}`;
+  return `PAY-${randomBytes(6).toString("hex").toUpperCase()}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -47,26 +53,66 @@ export async function POST(req: NextRequest) {
       type?: string;
     };
 
-    if (!body.amount || typeof body.amount !== "number" || body.amount < 200) {
+    if (!body.amount || typeof body.amount !== "number" || body.amount < MIN_PAYMENT_XOF) {
       return NextResponse.json(
-        { error: "Montant minimum : 200 XOF" },
+        { error: `Montant minimum : ${MIN_PAYMENT_XOF} XOF` },
         { status: 400 },
       );
     }
 
-    if (body.event_slug && body.participant_ref) {
-      const evt = await prisma.event.findUnique({
-        where: { slug: body.event_slug },
-        select: { prixBadge: true, prixTicket: true, badgePayant: true, ticketPayant: true },
-      });
-      if (evt) {
-        const expectedPrice = evt.badgePayant ? evt.prixBadge : evt.ticketPayant ? evt.prixTicket : 0;
-        if (expectedPrice > 0 && body.amount < expectedPrice) {
+    // Le tarif attendu est toujours recalculé côté serveur : soit le prix de
+    // création d'événement, soit le prix de l'inscription telle qu'elle est
+    // réellement enregistrée en base.
+    let expectedPrice: number | null = null;
+
+    if (body.type === "event_creation") {
+      expectedPrice = EVENT_CREATION_PRICE_XOF;
+
+      if (body.event_slug) {
+        const evt = await prisma.event.findUnique({
+          where: { slug: body.event_slug },
+          select: { statut: true },
+        });
+        if (evt?.statut === "actif") {
           return NextResponse.json(
-            { error: `Montant insuffisant. Prix attendu : ${expectedPrice} XOF` },
+            { error: "Cet evenement est deja actif" },
             { status: 400 },
           );
         }
+      }
+    } else if (body.participant_ref) {
+      const participant = await prisma.participant.findUnique({
+        where: { reference: body.participant_ref },
+        select: {
+          type: true,
+          event: {
+            select: { badgePayant: true, prixBadge: true, ticketPayant: true, prixTicket: true },
+          },
+        },
+      });
+      if (participant) {
+        expectedPrice = expectedParticipantAmount(participant.event, participant.type);
+      }
+    } else if (body.event_slug && (body.type === "badge" || body.type === "ticket")) {
+      const evt = await prisma.event.findUnique({
+        where: { slug: body.event_slug },
+        select: { badgePayant: true, prixBadge: true, ticketPayant: true, prixTicket: true },
+      });
+      if (evt) expectedPrice = expectedParticipantAmount(evt, body.type);
+    }
+
+    if (expectedPrice !== null) {
+      if (expectedPrice <= 0) {
+        return NextResponse.json(
+          { error: "Aucun paiement requis pour cette inscription" },
+          { status: 400 },
+        );
+      }
+      if (body.amount < expectedPrice) {
+        return NextResponse.json(
+          { error: `Montant insuffisant. Prix attendu : ${expectedPrice} XOF` },
+          { status: 400 },
+        );
       }
     }
 
@@ -142,7 +188,7 @@ export async function POST(req: NextRequest) {
       status: payment.status,
     });
   } catch (err: unknown) {
-    console.error("[payments] error:", err instanceof Error ? err.message : "unknown");
+    log.error("Creation de paiement impossible", { route: "POST /api/payments" }, err);
     return NextResponse.json({ error: "Erreur de paiement" }, { status: 500 });
   }
 }

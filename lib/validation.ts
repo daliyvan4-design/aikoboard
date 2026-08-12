@@ -58,3 +58,38 @@ export const adminUserSchema = z.object({
 });
 
 export type AdminUserInput = z.infer<typeof adminUserSchema>;
+
+// ─── Images envoyées en data-URI (inscription publique) ──────────────
+
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const ALLOWED_IMAGE_MIMES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+export type DataUriCheck =
+  | { ok: true; mime: string; bytes: number }
+  | { ok: false; error: string };
+
+/**
+ * Valide une image envoyée en data-URI : format, type MIME et taille réelle
+ * après décodage base64 — les mêmes garde-fous que /api/upload, que ce
+ * chemin contournait jusqu'ici.
+ */
+export function checkDataUriImage(value: unknown): DataUriCheck {
+  if (typeof value !== "string") return { ok: false, error: "Photo invalide" };
+
+  const match = /^data:([a-z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/i.exec(value.trim());
+  if (!match) return { ok: false, error: "Photo invalide (data-URI base64 attendu)" };
+
+  const mime = match[1].toLowerCase();
+  if (!ALLOWED_IMAGE_MIMES.includes(mime)) {
+    return { ok: false, error: "Format non supporte (JPG, PNG ou WebP)" };
+  }
+
+  const b64 = match[2];
+  const padding = b64.endsWith("==") ? 2 : b64.endsWith("=") ? 1 : 0;
+  const bytes = Math.floor((b64.length * 3) / 4) - padding;
+
+  if (bytes <= 0) return { ok: false, error: "Photo vide" };
+  if (bytes > MAX_IMAGE_BYTES) return { ok: false, error: "Photo trop volumineuse (max 5 Mo)" };
+
+  return { ok: true, mime, bytes };
+}

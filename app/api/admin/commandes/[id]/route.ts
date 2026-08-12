@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
 import { refundPayment } from "@/lib/geniuspay";
+import { log } from "@/lib/logger";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requireRole("ADMIN", "SUPERVISEUR", "CONCIERGE");
@@ -54,9 +55,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           where: { id: payment.id },
           data: { statut: "rembourse" },
         });
-        console.log(`[annulation] Remboursement automatique: ${payment.reference}`);
+        log.info(`Remboursement automatique: ${payment.reference}`, { route: "PATCH /api/admin/commandes/[id]" });
       } catch {
-        console.error(`[annulation] Echec remboursement: ${payment.reference}`);
+        log.error(`Echec remboursement: ${payment.reference}`, { route: "PATCH /api/admin/commandes/[id]" });
       }
     }
   }

@@ -453,6 +453,86 @@ export async function sendAdminNotificationEmail(input: SendAdminNotificationInp
   }
 }
 
+interface SendOrganizerAccessInput {
+  to: string;
+  organisateur: string;
+  eventName: string;
+  eventDate: string;
+  manageUrl: string;
+  publicUrl: string;
+}
+
+/**
+ * Lien privé de gestion envoyé à l'organisateur : c'est sa seule clé d'accès
+ * au tableau de bord de son événement (liste des inscrits, export, check-ins).
+ */
+export async function sendOrganizerAccessEmail(input: SendOrganizerAccessInput) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[email] RESEND_API_KEY not set, skipping email");
+    return null;
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background:#F3F2EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif">
+  <div style="max-width:520px;margin:0 auto;padding:32px 16px">
+    <div style="background:#0A0A0A;border-radius:16px 16px 0 0;padding:32px 32px 24px">
+      <table width="100%"><tr>
+        <td><span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#C8A951;letter-spacing:0.04em">AIKO</span></td>
+        <td align="right"><span style="font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:rgba(255,255,255,0.4)">Organisateur</span></td>
+      </tr></table>
+    </div>
+    <div style="background:#FFFFFF;padding:32px;border-left:1px solid #E8E6E1;border-right:1px solid #E8E6E1">
+      <p style="font-family:Georgia,serif;font-size:22px;color:#0A0A0A;margin:0 0 8px;line-height:1.3">
+        Votre evenement est en ligne
+      </p>
+      <p style="font-size:14px;color:#5A5750;line-height:1.7;margin:0 0 24px">
+        Bonjour ${esc(input.organisateur)}, ${esc(input.eventName)} (${esc(input.eventDate)}) est actif.
+        Conservez ce message : le lien ci-dessous est votre acces prive au tableau de bord.
+      </p>
+      <div style="text-align:center;margin-bottom:24px">
+        <a href="${esc(input.manageUrl)}" style="display:inline-block;background:#C8A951;color:#0A0A0A;text-decoration:none;font-size:14px;font-weight:600;padding:14px 28px;border-radius:999px">
+          Ouvrir mon tableau de bord
+        </a>
+      </div>
+      <div style="background:#F3F2EE;border-radius:12px;padding:20px">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#8A8680;margin:0 0 6px">Lien d'inscription public</p>
+        <p style="font-size:13px;color:#0A0A0A;margin:0;word-break:break-all">${esc(input.publicUrl)}</p>
+      </div>
+      <p style="font-size:12px;color:#8A8680;line-height:1.6;margin:20px 0 0">
+        Ne partagez pas le lien du tableau de bord : il donne acces aux coordonnees de vos inscrits.
+      </p>
+    </div>
+    <div style="background:#0A0A0A;border-radius:0 0 16px 16px;padding:20px 32px;text-align:center">
+      <p style="font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:rgba(255,255,255,0.3);margin:0">
+        AIKO Board · aikoboard.com
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM,
+      to: input.to,
+      subject: `Votre acces organisateur — ${input.eventName}`,
+      html,
+    });
+    console.log(`[email] Organizer access sent: ${result.data?.id}`);
+    return result;
+  } catch (err) {
+    console.error("[email] organizer access error:", err);
+    return null;
+  }
+}
+
 export function isEmailConfigured(): boolean {
   return !!process.env.RESEND_API_KEY;
 }

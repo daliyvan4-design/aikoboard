@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireAnyAdmin } from "@/lib/admin-auth";
+import { log } from "@/lib/logger";
 
 export async function POST(
   req: NextRequest,
@@ -124,7 +125,7 @@ export async function POST(
       },
     });
   } catch (err) {
-    console.error("[checkin] error:", err instanceof Error ? err.message : "unknown");
+    log.error("Check-in impossible", { route: "POST /api/participants/[ref]/checkin" }, err);
     return NextResponse.json(
       { success: false, error: "Erreur serveur" },
       { status: 500 },

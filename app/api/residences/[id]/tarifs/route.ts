@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
+import { log } from "@/lib/logger";
 
 export async function POST(
   req: NextRequest,
@@ -25,8 +26,8 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, id: tarif.id });
-  } catch {
-    console.error("[tarifs] create error");
+  } catch (err) {
+    log.error("Creation tarif impossible", { route: "POST /api/residences/[id]/tarifs" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -50,8 +51,8 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, id: tarif.id });
-  } catch {
-    console.error("[tarifs] update error");
+  } catch (err) {
+    log.error("Mise a jour tarif impossible", { route: "PATCH /api/residences/[id]/tarifs" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -76,8 +77,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     await prisma.residenceTarif.delete({ where: { id: tarifId } });
     return NextResponse.json({ success: true });
-  } catch {
-    console.error("[tarifs] delete error");
+  } catch (err) {
+    log.error("Suppression tarif impossible", { route: "DELETE /api/residences/[id]/tarifs" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

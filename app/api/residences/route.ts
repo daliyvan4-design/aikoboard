@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
+import { log } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -57,8 +58,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, id: residence.id });
-  } catch {
-    console.error("[residences] create error");
+  } catch (err) {
+    log.error("Creation residence impossible", { route: "POST /api/residences" }, err);
     return NextResponse.json({ error: "Erreur creation" }, { status: 500 });
   }
 }

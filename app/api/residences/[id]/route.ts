@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
+import { log } from "@/lib/logger";
 
 export async function GET(
   _req: NextRequest,
@@ -22,7 +23,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, data: residence });
   } catch (err) {
-    console.error("[residences] get error:", err instanceof Error ? err.message : "unknown");
+    log.error("Lecture residence impossible", { route: "GET /api/residences/[id]" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -60,7 +61,7 @@ export async function PUT(
 
     return NextResponse.json({ success: true, id: residence.id });
   } catch (err) {
-    console.error("[residences] update error:", err instanceof Error ? err.message : "unknown");
+    log.error("Mise a jour residence impossible", { route: "PATCH /api/residences/[id]" }, err);
     return NextResponse.json({ error: "Erreur mise a jour" }, { status: 500 });
   }
 }
@@ -80,7 +81,7 @@ export async function DELETE(
     });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[residences] delete error:", err instanceof Error ? err.message : "unknown");
+    log.error("Suppression residence impossible", { route: "DELETE /api/residences/[id]" }, err);
     return NextResponse.json({ error: "Erreur suppression" }, { status: 500 });
   }
 }

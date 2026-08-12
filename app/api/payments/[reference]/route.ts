@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPayment, isGeniusPayConfigured } from "@/lib/geniuspay";
+import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
+import { applyPaymentSuccess, parsePaymentMetadata } from "@/lib/payment-flow";
+import { log } from "@/lib/logger";
 
+/**
+ * Vérifie un paiement auprès de GeniusPay et réconcilie la base.
+ *
+ * Filet de sécurité du webhook : si celui-ci n'arrive pas (webhook non
+ * configuré, indisponibilité), la page de succès finit quand même par
+ * confirmer l'inscription ou activer l'événement — sur la foi de l'API
+ * GeniusPay, jamais sur celle du client.
+ */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ reference: string }> },
 ) {
   if (!isGeniusPayConfigured()) {
@@ -12,9 +24,39 @@ export async function GET(
     );
   }
 
+  const blocked = await rateLimit(req, "payment-status", 30, "60 s");
+  if (blocked) return blocked;
+
   try {
     const { reference } = await params;
-    const payment = await getPayment(reference);
+
+    const local = await prisma.payment.findUnique({ where: { reference } });
+    const payment = await getPayment(local?.geniusRef ?? reference);
+
+    if (payment.status === "completed") {
+      const meta = parsePaymentMetadata(local?.metadata ?? null);
+      await applyPaymentSuccess({
+        payRef: local?.reference ?? reference,
+        participantRef: meta.participant_ref,
+        eventSlug: meta.event_slug,
+        type: meta.type,
+        geniusRef: payment.reference?.toString(),
+        method: payment.payment_method,
+      });
+    } else if (local && local.statut === "pending" && payment.status !== "pending") {
+      const mapped =
+        payment.status === "failed" ? "echoue"
+        : payment.status === "cancelled" ? "annule"
+        : payment.status === "expired" ? "expire"
+        : payment.status === "refunded" ? "rembourse"
+        : null;
+      if (mapped) {
+        await prisma.payment.updateMany({
+          where: { reference: local.reference },
+          data: { statut: mapped },
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -26,8 +68,7 @@ export async function GET(
       completed_at: payment.completed_at,
     });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Erreur de vérification";
-    return NextResponse.json({ error: message }, { status: 500 });
+    log.error("Verification de paiement impossible", { route: "GET /api/payments/[reference]" }, err);
+    return NextResponse.json({ error: "Erreur de verification" }, { status: 500 });
   }
 }

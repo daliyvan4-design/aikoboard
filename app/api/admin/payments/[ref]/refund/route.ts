@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
 import { refundPayment, GeniusPayError } from "@/lib/geniuspay";
+import { log } from "@/lib/logger";
 
 export const preferredRegion = "cdg1";
 
@@ -52,18 +53,18 @@ export async function POST(
       });
     }
 
-    console.log(`[refund] Payment refunded: ${ref}`);
+    log.info(`Payment refunded: ${ref}`, { route: "POST /api/admin/payments/[ref]/refund" });
 
     return NextResponse.json({ success: true, data: result });
   } catch (err) {
     if (err instanceof GeniusPayError) {
-      console.error(`[refund] GeniusPay error: ${err.code}`);
+      log.error(`GeniusPay error: ${err.code}`, { route: "POST /api/admin/payments/[ref]/refund" });
       return NextResponse.json(
         { success: false, error: err.message },
         { status: err.httpStatus },
       );
     }
-    console.error("[refund] error:", err instanceof Error ? err.message : "unknown");
+    log.error("Remboursement impossible", { route: "POST /api/admin/payments/[ref]/refund" }, err);
     return NextResponse.json(
       { success: false, error: "Erreur lors du remboursement" },
       { status: 500 },

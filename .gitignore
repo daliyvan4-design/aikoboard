@@ -38,3 +38,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*
+
+# ...mais le modèle de configuration doit rester versionné
+!.env.example
+
+# artefacts locaux
+/test-results
+/uploads
+/video/node_modules
+/video/out

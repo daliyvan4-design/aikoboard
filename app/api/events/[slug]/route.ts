@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { log } from "@/lib/logger";
 
+/**
+ * Fiche publique d'un événement.
+ *
+ * Ne renvoie ni les coordonnées de l'organisateur, ni le token de gestion,
+ * ni la liste des inscrits : ces données passent par
+ * /api/events/[slug]/participants, protégé par session admin ou token.
+ */
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -9,20 +17,33 @@ export async function GET(
     const { slug } = await params;
     const event = await prisma.event.findUnique({
       where: { slug },
-      include: {
+      select: {
+        id: true,
+        slug: true,
+        nom: true,
+        type: true,
+        description: true,
+        organisateur: true,
+        lieu: true,
+        ville: true,
+        latitude: true,
+        longitude: true,
+        dateDebut: true,
+        dateFin: true,
+        capacite: true,
+        logoUrl: true,
+        coverUrl: true,
+        badgePayant: true,
+        prixBadge: true,
+        ticketPayant: true,
+        prixTicket: true,
+        offreLogement: true,
+        offreVehicule: true,
+        offreExtras: true,
+        institutionnel: true,
+        statut: true,
+        createdAt: true,
         _count: { select: { participants: true } },
-        participants: {
-          orderBy: { createdAt: "desc" },
-          take: 50,
-          select: {
-            prenom: true,
-            nom: true,
-            organisation: true,
-            type: true,
-            checkedIn: true,
-            ticketNumber: true,
-          },
-        },
         residence: {
           include: {
             images: { orderBy: { ordre: "asc" }, take: 5 },
@@ -36,8 +57,13 @@ export async function GET(
       return NextResponse.json({ error: "Evenement introuvable" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: event });
-  } catch {
+    const checkedInCount = await prisma.participant.count({
+      where: { eventId: event.id, checkedIn: true },
+    });
+
+    return NextResponse.json({ success: true, data: { ...event, checkedInCount } });
+  } catch (err) {
+    log.error("Lecture evenement impossible", { route: "GET /api/events/[slug]" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

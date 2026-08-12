@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadImage } from "@/lib/cloudinary";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireAnyAdmin } from "@/lib/admin-auth";
+import { log } from "@/lib/logger";
 
 const ALLOWED_FOLDERS = ["events", "residences", "profiles", "badges"];
 
@@ -37,8 +38,8 @@ export async function POST(req: NextRequest) {
     const { url } = await uploadImage(buffer, folder);
 
     return NextResponse.json({ success: true, url });
-  } catch {
-    console.error("[upload] error");
+  } catch (err) {
+    log.error("Upload image impossible", { route: "POST /api/upload" }, err);
     return NextResponse.json(
       { error: "Erreur upload" },
       { status: 500 },

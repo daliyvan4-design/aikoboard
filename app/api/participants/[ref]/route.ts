@@ -1,12 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
+import { log } from "@/lib/logger";
 
+/** Une référence valide ressemble à AIKO-XXXXXXXX. */
+const REF_PATTERN = /^[A-Za-z0-9-]{6,40}$/;
+
+/**
+ * Consultation d'une inscription par sa référence (QR code).
+ *
+ * La référence tient lieu de secret : la route est donc limitée en débit
+ * pour empêcher l'énumération, et ne renvoie que les champs nécessaires
+ * au billet, au badge et au reçu.
+ */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ ref: string }> },
 ) {
   try {
     const { ref } = await params;
+
+    if (!REF_PATTERN.test(ref)) {
+      return NextResponse.json({ error: "Participant introuvable" }, { status: 404 });
+    }
+
+    const blocked = await rateLimit(req, "participant-lookup", 30, "60 s");
+    if (blocked) return blocked;
+
     const participant = await prisma.participant.findUnique({
       where: { reference: ref },
       select: {
@@ -46,7 +66,8 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: participant });
-  } catch {
+  } catch (err) {
+    log.error("Lecture participant impossible", { route: "GET /api/participants/[ref]" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

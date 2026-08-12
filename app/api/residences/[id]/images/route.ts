@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
+import { log } from "@/lib/logger";
 
 export async function POST(
   req: NextRequest,
@@ -29,8 +30,8 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, id: image.id });
-  } catch {
-    console.error("[images] create error");
+  } catch (err) {
+    log.error("Ajout image residence impossible", { route: "POST /api/residences/[id]/images" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -55,8 +56,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     await prisma.residenceImage.delete({ where: { id: imageId } });
     return NextResponse.json({ success: true });
-  } catch {
-    console.error("[images] delete error");
+  } catch (err) {
+    log.error("Suppression image residence impossible", { route: "DELETE /api/residences/[id]/images" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

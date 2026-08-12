@@ -13,7 +13,16 @@ interface Props {
   eventSlug?: string;
   participantRef?: string;
   type?: "event_creation" | "badge" | "ticket" | "reservation";
-  onBeforePay?: () => Promise<{ participantRef?: string; eventSlug?: string } | void>;
+  /**
+   * Preparation avant paiement (creation de l'inscription ou de l'evenement).
+   * Renvoyer `abort: true` empeche le debit quand cette etape a echoue.
+   */
+  onBeforePay?: () => Promise<{
+    participantRef?: string;
+    eventSlug?: string;
+    abort?: boolean;
+    error?: string;
+  } | void>;
   onError?: (message: string) => void;
   disabled?: boolean;
   label?: string;
@@ -45,6 +54,10 @@ export function PaymentButton({
 
       if (onBeforePay) {
         const result = await onBeforePay();
+        if (result?.abort) {
+          onError?.(result.error ?? "Impossible de preparer le paiement");
+          return;
+        }
         if (result?.eventSlug) finalEventSlug = result.eventSlug;
         if (result?.participantRef) finalParticipantRef = result.participantRef;
       }

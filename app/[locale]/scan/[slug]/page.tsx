@@ -81,10 +81,7 @@ export default function ScanPage() {
       .then((d) => {
         if (d.success) {
           setEvent(d.data);
-          const checked = d.data.participants?.filter(
-            (p: { checkedIn: boolean }) => p.checkedIn
-          ).length ?? 0;
-          setTotalCheckedIn(checked);
+          setTotalCheckedIn(d.data.checkedInCount ?? 0);
         }
       })
       .catch(() => {});

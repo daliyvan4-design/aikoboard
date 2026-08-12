@@ -24,6 +24,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { PaymentButton } from "@/components/payment/payment-button";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { storeManageToken } from "@/lib/manage-token";
 
 type EventType = "conference" | "concert" | "salon" | "hackathon";
 
@@ -108,7 +109,11 @@ export default function CreerPage() {
   const update = (patch: Partial<EventForm>) => setForm({ ...form, ...patch });
   const isConcert = form.type === "concert";
 
-  const saveEventBeforePay = async (): Promise<{ eventSlug?: string }> => {
+  const saveEventBeforePay = async (): Promise<{
+    eventSlug?: string;
+    abort?: boolean;
+    error?: string;
+  }> => {
     try {
       const res = await fetch("/api/events", {
         method: "POST",
@@ -136,18 +141,21 @@ export default function CreerPage() {
           contactTel: form.contactTel,
           logoUrl: form.logoUrl || undefined,
           coverUrl: form.coverUrl || undefined,
-          statut: "pending",
         }),
       });
       const data = await res.json();
       if (data.success) {
         setEventSlug(data.slug);
+        // Cle privee du tableau de bord : conservee ici pour un retour
+        // immediat apres paiement, et envoyee par email a l'organisateur.
+        if (data.manageToken) storeManageToken(data.slug, data.manageToken);
         return { eventSlug: data.slug };
       }
+      // Pas d'evenement enregistre = pas de debit.
+      return { abort: true, error: data.error ?? "Creation impossible. Reessayez." };
     } catch {
-      // continue to payment anyway
+      return { abort: true, error: "Connexion impossible. Reessayez." };
     }
-    return {};
   };
 
   if (step === 4) {
