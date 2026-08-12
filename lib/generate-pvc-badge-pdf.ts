@@ -188,8 +188,8 @@ function drawRecto(
   doc.setTextColor(...SILVER);
   doc.setFontSize(4.5);
   doc.setFont("helvetica", "normal");
-  doc.text(`○ ${data.eventLieu}`, x + pad, bottomY + 3.5);
-  doc.text(`○ ${data.eventDate}`, x + pad, bottomY + 7);
+  doc.text(data.eventLieu, x + pad, bottomY + 3.5);
+  doc.text(data.eventDate, x + pad, bottomY + 7);
 
   // Badge number bottom-right
   doc.setTextColor(...GOLD);

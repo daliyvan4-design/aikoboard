@@ -25,7 +25,7 @@ function formatRange(start: string, end: string, locale: string) {
   const loc = locale === "ar" ? "ar-SA" : locale === "en" ? "en-GB" : "fr-FR";
   const s = new Date(start);
   const e = new Date(end);
-  return `${s.toLocaleDateString(loc, { day: "numeric", month: "long" })} — ${e.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric" })}`;
+  return `${s.toLocaleDateString(loc, { day: "numeric", month: "long" })} - ${e.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric" })}`;
 }
 
 export default function EvenementsPage() {

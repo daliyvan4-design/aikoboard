@@ -15,8 +15,6 @@ import {
   BadgeCheck,
   Ticket,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
-
 interface EventItem {
   slug: string;
   nom: string;
@@ -36,57 +34,7 @@ function formatRange(start: string, end: string, locale: string) {
   const loc = locale === "ar" ? "ar-SA" : locale === "en" ? "en-GB" : "fr-FR";
   const s = new Date(start);
   const e = new Date(end);
-  return `${s.toLocaleDateString(loc, { day: "numeric", month: "long" })} — ${e.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric" })}`;
-}
-
-function BadgeMockup() {
-  return (
-    <div className="relative select-none" aria-hidden="true">
-      {/* Subtle glow */}
-      <div className="absolute -inset-16 rounded-full opacity-30" style={{ background: "radial-gradient(circle, rgba(200,169,81,0.12) 0%, transparent 70%)" }} />
-
-      {/* Badge card */}
-      <div className="relative w-[260px] sm:w-[290px] rounded-xl overflow-hidden" style={{ background: "#0A1628", boxShadow: "0 25px 60px rgba(0,0,0,0.5)" }}>
-        <div style={{ height: 3, background: "#C8A951" }} />
-        <div className="px-5 pt-3.5 flex items-start justify-between">
-          <div>
-            <p className="text-[9px] text-white font-semibold tracking-wide">AVCA Conference</p>
-            <p className="text-[7px] text-white/40">& VC Summit 2026</p>
-          </div>
-          <span className="text-[7px] font-bold px-2 py-0.5 rounded-sm" style={{ background: "#C8A951", color: "#0A1628" }}>DELEGATE</span>
-        </div>
-        <div style={{ height: 1, background: "#1E2D41", margin: "8px 20px" }} />
-        <div className="px-5 flex gap-3 pb-3">
-          <div className="w-12 h-12 flex items-center justify-center shrink-0 rounded-sm" style={{ border: "1.5px solid #C8A951", background: "#1E2D41" }}>
-            <span className="text-[6px]" style={{ color: "#A0A5AF" }}>PHOTO</span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-[14px] text-white font-bold leading-tight">Amadou Diallo</p>
-            <p className="text-[7px] font-bold mt-1 tracking-wide" style={{ color: "#C8A951" }}>MANAGING DIRECTOR</p>
-            <p className="text-[8px] mt-0.5" style={{ color: "#A0A5AF" }}>AIKO Group International</p>
-          </div>
-        </div>
-        <div style={{ borderTop: "1px solid #1E2D41" }}>
-          <div className="px-5 py-2 flex items-center justify-between">
-            <p className="text-[6px]" style={{ color: "#6B7A8D" }}>Sofitel Hotel Ivoire &middot; Abidjan</p>
-            <div className="flex items-center gap-1">
-              <span className="text-[6px] font-bold" style={{ color: "#C8A951" }}>N&deg;</span>
-              <span className="text-[10px] text-white font-bold" style={{ fontVariantNumeric: "tabular-nums" }}>0042</span>
-            </div>
-          </div>
-        </div>
-        <div style={{ height: 3, background: "#C8A951" }} />
-      </div>
-
-      {/* Floating QR */}
-      <div
-        className="absolute -bottom-5 -right-5 w-[76px] h-[76px] rounded-xl flex items-center justify-center"
-        style={{ background: "#0A1628", boxShadow: "0 12px 40px rgba(0,0,0,0.4)", border: "1px solid rgba(200,169,81,0.15)" }}
-      >
-        <QRCodeSVG value="AIKO-X7K2M9" size={50} bgColor="transparent" fgColor="#C8A951" level="L" />
-      </div>
-    </div>
-  );
+  return `${s.toLocaleDateString(loc, { day: "numeric", month: "long" })} - ${e.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric" })}`;
 }
 
 function EventCard({ evt, locale, t }: { evt: EventItem; locale: string; t: (key: string) => string }) {
@@ -172,35 +120,29 @@ export default function LandingPage() {
       {/* ─── HERO ─── */}
       <div className="bg-ink text-cream">
         <div className="max-w-7xl mx-auto px-5 lg:px-10 pt-16 lg:pt-24 pb-20 lg:pb-32">
-          <div className="grid lg:grid-cols-[1fr_auto] gap-16 lg:gap-20 items-center">
-            <div className="max-w-2xl">
-              <h1 className="font-serif text-[42px] sm:text-[56px] lg:text-[68px] leading-[1.04] tracking-tight">
-                {t("h1_pre")}{" "}
-                <em className="text-gold not-italic">{t("h1_highlight")}</em>.
-              </h1>
-              <p className="mt-7 text-[17px] sm:text-[18px] text-cream/50 leading-[1.7] max-w-xl">
-                {t("lead")}
-              </p>
+          <div className="max-w-2xl">
+            <h1 className="font-serif text-[42px] sm:text-[56px] lg:text-[68px] leading-[1.04] tracking-tight">
+              {t("h1_pre")}{" "}
+              <em className="text-gold not-italic">{t("h1_highlight")}</em>.
+            </h1>
+            <p className="mt-7 text-[17px] sm:text-[18px] text-cream/50 leading-[1.7] max-w-xl">
+              {t("lead")}
+            </p>
 
-              <div className="mt-10 flex flex-wrap items-center gap-4">
-                <Link
-                  href={`/${locale}/evenements/creer`}
-                  className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-7 py-3.5 text-[15px] font-semibold transition-colors"
-                >
-                  {t("cta_create")}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="#participer"
-                  className="inline-flex items-center gap-2 text-cream/50 hover:text-cream border border-cream/12 hover:border-cream/25 rounded-full px-7 py-3.5 text-[15px] transition-all"
-                >
-                  {t("tab_participate")}
-                </Link>
-              </div>
-            </div>
-
-            <div className="hidden lg:flex justify-center pr-8">
-              <BadgeMockup />
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <Link
+                href={`/${locale}/evenements/creer`}
+                className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-7 py-3.5 text-[15px] font-semibold transition-colors"
+              >
+                {t("cta_create")}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="#participer"
+                className="inline-flex items-center gap-2 text-cream/50 hover:text-cream border border-cream/12 hover:border-cream/25 rounded-full px-7 py-3.5 text-[15px] transition-all"
+              >
+                {t("tab_participate")}
+              </Link>
             </div>
           </div>
         </div>
@@ -222,6 +164,41 @@ export default function LandingPage() {
               <s.icon className="w-6 h-6 text-gold mb-5" strokeWidth={1.5} />
               <h3 className="text-[18px] font-semibold text-ink mb-3">{s.title}</h3>
               <p className="text-[15px] text-mute leading-[1.7]">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── PRICING ─── */}
+      <div id="tarifs" className="max-w-7xl mx-auto px-5 lg:px-10 py-24 lg:py-32">
+        <h2 className="font-serif text-[30px] sm:text-[38px] text-ink mb-4">
+          {t("pricing_h2_pre")} <em className="text-gold not-italic">{t("pricing_h2_highlight")}</em>.
+        </h2>
+        <p className="text-[15px] text-mute mb-14 max-w-lg">{t("pricing_note")}</p>
+
+        <div className="grid sm:grid-cols-3 gap-6 max-w-4xl">
+          {pricing.map((p, i) => (
+            <div
+              key={p.label}
+              className={`rounded-2xl p-7 transition-all duration-300 ${
+                i === 0
+                  ? "bg-ink text-cream"
+                  : "bg-white border border-line hover:border-gold/20 hover:shadow-md"
+              }`}
+            >
+              <p.icon className={`w-5 h-5 mb-6 ${i === 0 ? "text-gold" : "text-gold/70"}`} strokeWidth={1.5} />
+              <p className={`text-[12px] uppercase tracking-wider font-medium mb-4 ${i === 0 ? "text-cream/40" : "text-mute"}`}>
+                {p.label}
+              </p>
+              <p className={`text-[36px] leading-none font-semibold ${i === 0 ? "text-cream" : "text-ink"}`} style={{ fontVariantNumeric: "tabular-nums" }}>
+                {p.price}
+              </p>
+              {p.equiv && (
+                <p className={`text-[12px] mt-2 ${i === 0 ? "text-cream/30" : "text-mute/50"}`}>{p.equiv}</p>
+              )}
+              <p className={`text-[14px] mt-5 leading-relaxed ${i === 0 ? "text-cream/50" : "text-mute"}`}>
+                {p.sub}
+              </p>
             </div>
           ))}
         </div>
@@ -261,41 +238,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ─── PRICING ─── */}
-      <div id="tarifs" className="max-w-7xl mx-auto px-5 lg:px-10 py-24 lg:py-32">
-        <h2 className="font-serif text-[30px] sm:text-[38px] text-ink mb-4">
-          {t("pricing_h2_pre")} <em className="text-gold not-italic">{t("pricing_h2_highlight")}</em>.
-        </h2>
-        <p className="text-[15px] text-mute mb-14 max-w-lg">{t("pricing_note")}</p>
-
-        <div className="grid sm:grid-cols-3 gap-6 max-w-4xl">
-          {pricing.map((p, i) => (
-            <div
-              key={p.label}
-              className={`rounded-2xl p-7 transition-all duration-300 ${
-                i === 0
-                  ? "bg-ink text-cream"
-                  : "bg-white border border-line hover:border-gold/20 hover:shadow-md"
-              }`}
-            >
-              <p.icon className={`w-5 h-5 mb-6 ${i === 0 ? "text-gold" : "text-gold/70"}`} strokeWidth={1.5} />
-              <p className={`text-[12px] uppercase tracking-wider font-medium mb-4 ${i === 0 ? "text-cream/40" : "text-mute"}`}>
-                {p.label}
-              </p>
-              <p className={`text-[36px] leading-none font-semibold ${i === 0 ? "text-cream" : "text-ink"}`} style={{ fontVariantNumeric: "tabular-nums" }}>
-                {p.price}
-              </p>
-              {p.equiv && (
-                <p className={`text-[12px] mt-2 ${i === 0 ? "text-cream/30" : "text-mute/50"}`}>{p.equiv}</p>
-              )}
-              <p className={`text-[14px] mt-5 leading-relaxed ${i === 0 ? "text-cream/50" : "text-mute"}`}>
-                {p.sub}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* ─── FINAL CTA ─── */}
       <div className="bg-ink text-cream">
         <div className="max-w-4xl mx-auto px-5 lg:px-10 py-24 lg:py-32 text-center">
@@ -303,7 +245,7 @@ export default function LandingPage() {
             Pret a lancer votre prochain evenement ?
           </h2>
           <p className="mt-5 text-[16px] text-cream/45 max-w-lg mx-auto leading-[1.7]">
-            Creez votre evenement en moins de 2 minutes. Badges, QR codes, paiement mobile — tout est inclus.
+            Creez votre evenement en moins de 2 minutes. Badges, QR codes, paiement mobile, tout est inclus.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link

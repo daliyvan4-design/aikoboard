@@ -205,7 +205,7 @@ export default function ScanPage() {
 
       const pdf = generateSinglePvcBadge({
         eventName: event.nom,
-        eventDate: `${fmtDate(event.dateDebut)} — ${fmtDate(event.dateFin)}`,
+        eventDate: `${fmtDate(event.dateDebut)} - ${fmtDate(event.dateFin)}`,
         eventLieu: `${event.lieu} · ${event.ville}`,
         eventType: event.type,
         organisateur: event.organisateur,

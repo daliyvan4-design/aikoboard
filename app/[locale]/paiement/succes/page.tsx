@@ -44,7 +44,7 @@ function formatDateRange(start: string, end: string) {
   const s = new Date(start);
   const e = new Date(end);
   const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
-  return `${s.toLocaleDateString("fr-FR", { day: "numeric" })} — ${e.toLocaleDateString("fr-FR", opts)}`;
+  return `${s.toLocaleDateString("fr-FR", { day: "numeric" })} - ${e.toLocaleDateString("fr-FR", opts)}`;
 }
 
 function SuccessContent() {
