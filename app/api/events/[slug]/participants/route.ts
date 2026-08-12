@@ -4,9 +4,11 @@ import { sendConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireAnyAdmin } from "@/lib/admin-auth";
 import { participantSchema } from "@/lib/validation";
+import { uploadBase64Image } from "@/lib/cloudinary";
 
 function genRef() {
-  return `AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const bytes = require("crypto").randomBytes(4);
+  return `AIKO-${bytes.toString("hex").toUpperCase()}`;
 }
 
 function formatDateRange(start: Date, end: Date) {
@@ -33,7 +35,8 @@ export async function POST(
     }
 
     const raw = await req.json();
-    const parsed = participantSchema.safeParse(raw);
+    const { photo, ...rest } = raw;
+    const parsed = participantSchema.safeParse(rest);
     if (!parsed.success) {
       return NextResponse.json({ error: "Données invalides", details: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
@@ -42,6 +45,14 @@ export async function POST(
     const isBadge = (body.type ?? (event.type === "concert" ? "ticket" : "badge")) === "badge";
     const isPaid = (isBadge && event.badgePayant) || (!isBadge && event.ticketPayant);
     const statut = isPaid ? "pending" : "confirme";
+
+    let photoUrl = body.photoUrl;
+    if (!photoUrl && photo && typeof photo === "string" && photo.startsWith("data:image/")) {
+      try {
+        const uploaded = await uploadBase64Image(photo, "badges");
+        photoUrl = uploaded.url;
+      } catch {}
+    }
 
     const participant = await prisma.participant.create({
       data: {
@@ -53,6 +64,8 @@ export async function POST(
         email: body.email,
         telephone: body.telephone,
         organisation: body.organisation,
+        titre: body.titre,
+        photoUrl,
         type: body.type ?? (event.type === "concert" ? "ticket" : "badge"),
         statut,
         montant: body.montant ?? 0,
@@ -91,8 +104,8 @@ export async function POST(
         type: participant.type,
       },
     });
-  } catch (err) {
-    console.error("[participants] create error:", err);
+  } catch {
+    console.error("[participants] create error");
     return NextResponse.json({ error: "Erreur inscription" }, { status: 500 });
   }
 }
@@ -120,8 +133,8 @@ export async function GET(
     });
 
     return NextResponse.json({ success: true, data: participants });
-  } catch (err) {
-    console.error("[participants] list error:", err);
+  } catch {
+    console.error("[participants] list error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

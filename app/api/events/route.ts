@@ -98,8 +98,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, slug: event.slug, id: event.id });
-  } catch (err) {
-    console.error("[events] create error:", err);
+  } catch {
+    console.error("[events] create error");
     return NextResponse.json({ error: "Erreur creation" }, { status: 500 });
   }
 }
@@ -113,8 +113,8 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, data: events });
-  } catch (err) {
-    console.error("[events] list error:", err);
+  } catch {
+    console.error("[events] list error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

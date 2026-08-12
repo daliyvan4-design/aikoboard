@@ -90,9 +90,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      console.log(
-        `[GeniusPay] Payment completed: ${payRef} — participant: ${participantRef ?? "n/a"} — event: ${eventSlug ?? "n/a"}`,
-      );
+      console.log(`[GeniusPay] Payment completed: ${payRef ?? "n/a"}`);
       break;
     }
 
@@ -118,7 +116,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      console.log(`[GeniusPay] Payment ${status}: ${payRef}`);
+      console.log(`[GeniusPay] Payment ${status}: ${payRef ?? "n/a"}`);
       break;
     }
 
@@ -133,7 +131,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      console.log(`[GeniusPay] Payment refunded: ${payRef} — ${amount} XOF`);
+      console.log(`[GeniusPay] Payment refunded: ${payRef ?? "n/a"}`);
       break;
     }
 

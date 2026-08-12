@@ -267,6 +267,8 @@ model Participant {
   email         String
   telephone     String
   organisation  String?
+  titre         String?
+  photoUrl      String?
   type          String   @default("badge")
   statut        String   @default("confirme")
   paymentRef    String?

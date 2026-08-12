@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     const { url } = await uploadImage(buffer, folder);
 
     return NextResponse.json({ success: true, url });
-  } catch (err: unknown) {
-    console.error("[upload] error:", err);
+  } catch {
+    console.error("[upload] error");
     return NextResponse.json(
       { error: "Erreur upload" },
       { status: 500 },

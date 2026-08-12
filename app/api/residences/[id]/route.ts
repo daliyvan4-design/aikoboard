@@ -22,7 +22,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, data: residence });
   } catch (err) {
-    console.error("[residences] get error:", err);
+    console.error("[residences] get error:", err instanceof Error ? err.message : "unknown");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -47,9 +47,9 @@ export async function PUT(
         adresse: body.adresse,
         ville: body.ville,
         quartier: body.quartier,
-        latitude: body.latitude !== undefined ? parseFloat(body.latitude) : undefined,
-        longitude: body.longitude !== undefined ? parseFloat(body.longitude) : undefined,
-        capacite: body.capacite ? parseInt(body.capacite) : undefined,
+        latitude: body.latitude !== undefined ? (parseFloat(body.latitude) || null) : undefined,
+        longitude: body.longitude !== undefined ? (parseFloat(body.longitude) || null) : undefined,
+        capacite: body.capacite ? (parseInt(body.capacite) || undefined) : undefined,
         equipements: body.equipements,
         contactNom: body.contactNom,
         contactTel: body.contactTel,
@@ -60,7 +60,7 @@ export async function PUT(
 
     return NextResponse.json({ success: true, id: residence.id });
   } catch (err) {
-    console.error("[residences] update error:", err);
+    console.error("[residences] update error:", err instanceof Error ? err.message : "unknown");
     return NextResponse.json({ error: "Erreur mise a jour" }, { status: 500 });
   }
 }
@@ -80,7 +80,7 @@ export async function DELETE(
     });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[residences] delete error:", err);
+    console.error("[residences] delete error:", err instanceof Error ? err.message : "unknown");
     return NextResponse.json({ error: "Erreur suppression" }, { status: 500 });
   }
 }

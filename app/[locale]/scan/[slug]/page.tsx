@@ -30,6 +30,8 @@ interface ScanResult {
     nom: string;
     email: string;
     organisation?: string;
+    titre?: string;
+    photoUrl?: string;
     reference: string;
     ticketNumber: number;
     type: string;
@@ -188,6 +190,19 @@ export default function ScanPage() {
       const fmtDate = (d: string) =>
         new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
+      let photoDataUrl: string | undefined;
+      if (p.photoUrl) {
+        try {
+          const imgRes = await fetch(p.photoUrl);
+          const blob = await imgRes.blob();
+          photoDataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch {}
+      }
+
       const pdf = generateSinglePvcBadge({
         eventName: event.nom,
         eventDate: `${fmtDate(event.dateDebut)} — ${fmtDate(event.dateFin)}`,
@@ -196,11 +211,13 @@ export default function ScanPage() {
         organisateur: event.organisateur,
         participant: {
           name: `${p.prenom} ${p.nom}`,
+          titre: p.titre,
           organisation: p.organisation ?? undefined,
           email: p.email,
           reference: p.reference,
           badgeNumber: p.ticketNumber,
           qrDataUrl,
+          photoDataUrl,
         },
       });
 

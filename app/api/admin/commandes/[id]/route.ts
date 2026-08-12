@@ -54,9 +54,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           where: { id: payment.id },
           data: { statut: "rembourse" },
         });
-        console.log(`[annulation] Remboursement automatique: ${payment.reference} — ${payment.montant} XOF`);
-      } catch (err) {
-        console.error(`[annulation] Echec remboursement ${payment.reference}:`, err);
+        console.log(`[annulation] Remboursement automatique: ${payment.reference}`);
+      } catch {
+        console.error(`[annulation] Echec remboursement: ${payment.reference}`);
       }
     }
   }

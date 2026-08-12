@@ -18,15 +18,15 @@ export async function POST(
         residenceId: id,
         label: body.label,
         typeChambre: body.typeChambre,
-        prixParNuit: parseFloat(body.prixParNuit),
+        prixParNuit: parseFloat(body.prixParNuit) || 0,
         devise: body.devise ?? "XOF",
-        capacite: body.capacite ? parseInt(body.capacite) : 2,
+        capacite: body.capacite ? parseInt(body.capacite) || 2 : 2,
       },
     });
 
     return NextResponse.json({ success: true, id: tarif.id });
-  } catch (err) {
-    console.error("[residence-tarifs] create error:", err);
+  } catch {
+    console.error("[tarifs] create error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -43,15 +43,15 @@ export async function PUT(req: NextRequest) {
       data: {
         label: body.label,
         typeChambre: body.typeChambre,
-        prixParNuit: body.prixParNuit ? parseFloat(body.prixParNuit) : undefined,
-        capacite: body.capacite ? parseInt(body.capacite) : undefined,
+        prixParNuit: body.prixParNuit ? (parseFloat(body.prixParNuit) || undefined) : undefined,
+        capacite: body.capacite ? (parseInt(body.capacite) || undefined) : undefined,
         actif: body.actif,
       },
     });
 
     return NextResponse.json({ success: true, id: tarif.id });
-  } catch (err) {
-    console.error("[residence-tarifs] update error:", err);
+  } catch {
+    console.error("[tarifs] update error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -76,8 +76,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     await prisma.residenceTarif.delete({ where: { id: tarifId } });
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[residence-tarifs] delete error:", err);
+  } catch {
+    console.error("[tarifs] delete error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

@@ -16,6 +16,7 @@ import {
   Star,
   Car,
   Sparkles,
+  Camera,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -96,8 +97,12 @@ export default function EventPage() {
     email: "",
     telephone: "",
     organisation: "",
+    titre: "",
     useForBadge: true,
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [ref, setRef] = useState("");
   const [ticketNum, setTicketNum] = useState(0);
   const [payError, setPayError] = useState("");
@@ -140,12 +145,23 @@ export default function EventPage() {
   const price = isConcert ? event.prixTicket : event.prixBadge;
   const isFree = price === 0;
 
+  const getPhotoBase64 = async (): Promise<string | undefined> => {
+    if (!photoFile) return undefined;
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(photoFile);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!isFree) return;
+    setUploadingPhoto(true);
 
     try {
+      const photoBase64 = !isConcert ? await getPhotoBase64() : undefined;
+
       const res = await fetch(`/api/events/${event.slug}/participants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -155,6 +171,8 @@ export default function EventPage() {
           email: form.email,
           telephone: form.telephone,
           organisation: form.organisation,
+          titre: !isConcert ? form.titre || undefined : undefined,
+          photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
           montant: 0,
           residenceTarifId: selectedTarifId,
@@ -171,11 +189,15 @@ export default function EventPage() {
       setRef(`AIKO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
     }
 
+    setUploadingPhoto(false);
     setStep("done");
   };
 
   const saveParticipantBeforePay = async (): Promise<{ participantRef?: string; eventSlug?: string }> => {
+    setUploadingPhoto(true);
     try {
+      const photoBase64 = !isConcert ? await getPhotoBase64() : undefined;
+
       const res = await fetch(`/api/events/${event.slug}/participants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -185,6 +207,8 @@ export default function EventPage() {
           email: form.email,
           telephone: form.telephone,
           organisation: form.organisation,
+          titre: !isConcert ? form.titre || undefined : undefined,
+          photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
           statut: "pending",
           montant: price,
@@ -195,9 +219,8 @@ export default function EventPage() {
       if (data.success) {
         return { participantRef: data.data.reference, eventSlug: event.slug };
       }
-    } catch {
-      // continue to payment anyway
-    }
+    } catch {}
+    setUploadingPhoto(false);
     return { eventSlug: event.slug };
   };
 
@@ -507,6 +530,42 @@ export default function EventPage() {
                 <label className="block text-[12px] font-medium text-ink mb-2 uppercase tracking-wider">{t("organization")}</label>
                 <input value={form.organisation} onChange={(e) => setForm({ ...form, organisation: e.target.value })} placeholder={t("optional")} className="w-full bg-cream2 border border-line rounded-xl px-4 py-3.5 text-[15px]" />
               </div>
+
+              {!isConcert && (
+                <>
+                  <div className="md:col-span-2">
+                    <label className="block text-[12px] font-medium text-ink mb-2 uppercase tracking-wider">Titre / Fonction</label>
+                    <input value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} placeholder="Ex: Managing Director, Delegate, Speaker..." className="w-full bg-cream2 border border-line rounded-xl px-4 py-3.5 text-[15px]" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-[12px] font-medium text-ink mb-2 uppercase tracking-wider">Photo (pour le badge)</label>
+                    <div className="flex items-center gap-4">
+                      <label className="cursor-pointer inline-flex items-center gap-2.5 bg-cream2 border border-line hover:border-gold/40 rounded-xl px-5 py-3.5 text-[14px] text-mute transition-colors">
+                        <Camera className="w-5 h-5 text-gold" />
+                        {photoFile ? photoFile.name : "Choisir une photo"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file && file.size <= 5 * 1024 * 1024) {
+                              setPhotoFile(file);
+                              setPhotoPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </label>
+                      {photoPreview && (
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-gold/30">
+                          <Image src={photoPreview} alt="Photo" fill className="object-cover" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-mute mt-2">Format: JPG, PNG ou WebP. Max 5 Mo. Cette photo apparaitra sur votre badge imprime.</p>
+                  </div>
+                </>
+              )}
 
               {hasLogement && (
                 <div className="md:col-span-2 border-t border-line pt-6">

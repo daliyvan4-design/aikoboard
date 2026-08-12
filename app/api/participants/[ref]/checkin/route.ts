@@ -65,6 +65,8 @@ export async function POST(
           nom: participant.nom,
           email: participant.email,
           organisation: participant.organisation,
+          titre: participant.titre,
+          photoUrl: participant.photoUrl,
           reference: participant.reference,
           ticketNumber: participant.ticketNumber,
           type: participant.type,
@@ -103,6 +105,8 @@ export async function POST(
         nom: updated.nom,
         email: updated.email,
         organisation: updated.organisation,
+        titre: updated.titre,
+        photoUrl: updated.photoUrl,
         reference: updated.reference,
         ticketNumber: updated.ticketNumber,
         type: updated.type,
@@ -120,7 +124,7 @@ export async function POST(
       },
     });
   } catch (err) {
-    console.error("[checkin] error:", err);
+    console.error("[checkin] error:", err instanceof Error ? err.message : "unknown");
     return NextResponse.json(
       { success: false, error: "Erreur serveur" },
       { status: 500 },

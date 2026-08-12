@@ -29,8 +29,8 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, id: image.id });
-  } catch (err) {
-    console.error("[residence-images] create error:", err);
+  } catch {
+    console.error("[images] create error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
@@ -55,8 +55,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     await prisma.residenceImage.delete({ where: { id: imageId } });
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[residence-images] delete error:", err);
+  } catch {
+    console.error("[images] delete error");
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

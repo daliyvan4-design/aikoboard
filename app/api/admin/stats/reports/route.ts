@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
-  const days = parseInt(searchParams.get("days") || "30");
+  const days = Math.min(parseInt(searchParams.get("days") || "30") || 30, 365);
 
   const since = new Date();
   since.setDate(since.getDate() - days);

@@ -39,6 +39,8 @@ export const participantSchema = z.object({
   email: z.string().email().max(255),
   telephone: z.string().min(5).max(30),
   organisation: z.string().max(200).optional(),
+  titre: z.string().max(200).optional(),
+  photoUrl: z.string().url().max(500).optional(),
   type: z.enum(["badge", "ticket"]).optional(),
   statut: z.enum(["confirme", "pending", "annule"]).optional(),
   montant: z.number().min(0).optional(),

@@ -34,7 +34,8 @@ export async function POST(
 
   try {
     const body = await req.json().catch(() => ({}));
-    const amount = body.amount ? parseFloat(body.amount) : undefined;
+    const rawAmount = body.amount ? parseFloat(body.amount) : undefined;
+    const amount = rawAmount && !isNaN(rawAmount) && rawAmount > 0 ? rawAmount : undefined;
 
     const result = await refundPayment(ref, amount);
 
@@ -51,18 +52,18 @@ export async function POST(
       });
     }
 
-    console.log(`[refund] Payment ${ref} refunded — ${amount ?? payment.montant} XOF`);
+    console.log(`[refund] Payment refunded: ${ref}`);
 
     return NextResponse.json({ success: true, data: result });
   } catch (err) {
     if (err instanceof GeniusPayError) {
-      console.error(`[refund] GeniusPay error: ${err.code} — ${err.message}`);
+      console.error(`[refund] GeniusPay error: ${err.code}`);
       return NextResponse.json(
         { success: false, error: err.message },
         { status: err.httpStatus },
       );
     }
-    console.error("[refund] error:", err);
+    console.error("[refund] error:", err instanceof Error ? err.message : "unknown");
     return NextResponse.json(
       { success: false, error: "Erreur lors du remboursement" },
       { status: 500 },

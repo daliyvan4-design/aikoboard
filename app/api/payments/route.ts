@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
       status: payment.status,
     });
   } catch (err: unknown) {
-    console.error("[payments] error:", err);
+    console.error("[payments] error:", err instanceof Error ? err.message : "unknown");
     return NextResponse.json({ error: "Erreur de paiement" }, { status: 500 });
   }
 }

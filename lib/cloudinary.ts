@@ -31,6 +31,22 @@ export async function uploadImage(
   return { url: result.secure_url, publicId: result.public_id };
 }
 
+export async function uploadBase64Image(
+  base64: string,
+  folder: string,
+): Promise<{ url: string; publicId: string }> {
+  ensureConfig();
+  const result = await cloudinary.uploader.upload(base64, {
+    folder: `aiko/${folder}`,
+    resource_type: "image",
+    transformation: [
+      { quality: "auto", fetch_format: "auto" },
+      { width: 600, height: 600, crop: "limit" },
+    ],
+  });
+  return { url: result.secure_url, publicId: result.public_id };
+}
+
 export function optimizedUrl(url: string, width?: number): string {
   if (!url.includes("cloudinary.com")) return url;
   return url.replace("/upload/", `/upload/f_auto,q_auto${width ? `,w_${width}` : ""}/`);

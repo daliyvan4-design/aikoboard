@@ -22,7 +22,7 @@ export async function PATCH(
   if (body.ville !== undefined) data.ville = body.ville;
   if (body.dateDebut !== undefined) data.dateDebut = new Date(body.dateDebut);
   if (body.dateFin !== undefined) data.dateFin = new Date(body.dateFin);
-  if (body.capacite !== undefined) data.capacite = parseInt(body.capacite);
+  if (body.capacite !== undefined) data.capacite = parseInt(body.capacite) || 500;
   if (body.contactEmail !== undefined) data.contactEmail = body.contactEmail;
   if (body.contactTel !== undefined) data.contactTel = body.contactTel;
   if (body.logoUrl !== undefined) data.logoUrl = body.logoUrl || null;
