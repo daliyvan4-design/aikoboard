@@ -292,13 +292,27 @@ export default function OrganisateurDashboard() {
               </div>
               <button
                 onClick={() => {
-                  const csv = [
-                    "N°,Reference,Prenom,Nom,Email,Telephone,Organisation,Type,Montant,Check-in",
-                    ...event.participants.map((p) =>
-                      `${p.ticketNumber},${p.reference},${p.prenom},${p.nom},${p.email},${p.telephone},${p.organisation ?? ""},${p.type},${p.montant},${p.checkedIn ? "Oui" : "Non"}`
-                    ),
-                  ].join("\n");
-                  const blob = new Blob([csv], { type: "text/csv" });
+                  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+                  const sep = ";";
+                  const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Check-in", "Date inscription"].join(sep);
+                  const rows = event.participants.map((p) =>
+                    [
+                      String(p.ticketNumber).padStart(4, "0"),
+                      p.reference,
+                      esc(p.prenom),
+                      esc(p.nom),
+                      p.email,
+                      p.telephone,
+                      esc(p.organisation ?? ""),
+                      p.type,
+                      String(p.montant),
+                      p.checkedIn ? "Oui" : "Non",
+                      new Date(p.createdAt).toLocaleDateString("fr-FR"),
+                    ].join(sep)
+                  );
+                  const bom = "﻿";
+                  const csv = bom + [header, ...rows].join("\r\n");
+                  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement("a");
                   a.href = url;
