@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const prismaMock = {
-  event: { findUnique: vi.fn() },
+  event: { findUnique: vi.fn(), findFirst: vi.fn() },
   participant: { findUnique: vi.fn(), update: vi.fn() },
 };
 
@@ -61,6 +61,8 @@ describe("POST /api/participants/[ref]/checkin", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.event.findUnique.mockResolvedValue(event);
+    // assertEventAccess accepte aussi les anciens slugs : findFirst avec OR
+    prismaMock.event.findFirst.mockResolvedValue(event);
     prismaMock.participant.findUnique.mockResolvedValue(participant);
     prismaMock.participant.update.mockResolvedValue({
       ...participant,

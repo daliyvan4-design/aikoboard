@@ -4,27 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { log } from "@/lib/logger";
 import { EVENT_CREATION_PRICE_XOF } from "@/lib/pricing";
-
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .substring(0, 80);
-}
-
-async function uniqueSlug(base: string): Promise<string> {
-  const existing = await prisma.event.findUnique({ where: { slug: base } });
-  if (!existing) return base;
-  for (let i = 2; i <= 50; i++) {
-    const candidate = `${base}-${i}`;
-    const found = await prisma.event.findUnique({ where: { slug: candidate } });
-    if (!found) return candidate;
-  }
-  return `${base}-${randomBytes(3).toString("hex")}`;
-}
+import { slugify, uniqueSlug } from "@/lib/slug";
 
 /** Clé privée d'accès au tableau de bord organisateur. */
 function generateManageToken(): string {

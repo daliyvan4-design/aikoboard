@@ -198,6 +198,9 @@ model Event {
   statut          String        @default("actif")
   paymentRef      String?
   manageToken     String?       @unique
+  // Anciens slugs, conservés pour que les liens déjà partagés continuent
+  // de fonctionner après un renommage.
+  slugAliases     String[]      @default([])
   participants    Participant[]
   payments        Payment[]
   createdAt       DateTime      @default(now())

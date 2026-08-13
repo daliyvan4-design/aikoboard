@@ -44,8 +44,10 @@ export async function assertEventAccess(
   req: NextRequest,
   slug: string,
 ): Promise<EventAccess> {
-  const event = await prisma.event.findUnique({
-    where: { slug },
+  // Un ancien slug reste accepté : le lien de gestion mémorisé par
+  // l'organisateur ne doit pas cesser de fonctionner après un renommage.
+  const event = await prisma.event.findFirst({
+    where: { OR: [{ slug }, { slugAliases: { has: slug } }] },
     select: { id: true, slug: true, nom: true, statut: true, manageToken: true },
   });
 

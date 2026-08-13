@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolveEventSlug } from "@/lib/slug";
 import { log } from "@/lib/logger";
 
 /**
@@ -14,9 +15,17 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = await params;
+    const { slug: requested } = await params;
+
+    // Un ancien slug reste valide : on retrouve l'evenement et on annonce
+    // l'adresse canonique dans la reponse.
+    const resolved = await resolveEventSlug(requested);
+    if (!resolved) {
+      return NextResponse.json({ error: "Evenement introuvable" }, { status: 404 });
+    }
+
     const event = await prisma.event.findUnique({
-      where: { slug },
+      where: { id: resolved.id },
       select: {
         id: true,
         slug: true,
@@ -61,7 +70,10 @@ export async function GET(
       where: { eventId: event.id, checkedIn: true },
     });
 
-    return NextResponse.json({ success: true, data: { ...event, checkedInCount } });
+    return NextResponse.json({
+      success: true,
+      data: { ...event, checkedInCount, canonicalSlug: event.slug },
+    });
   } catch (err) {
     log.error("Lecture evenement impossible", { route: "GET /api/events/[slug]" }, err);
     return NextResponse.json({ error: "Erreur" }, { status: 500 });
