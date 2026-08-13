@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveEventSlug } from "@/lib/slug";
 
 const BASE = "https://aikoboard.com";
+
+// Sans cela, Next prerend la coquille de la page : le statut 200 part
+// avant que le layout ait fini, et redirection comme 404 arrivent trop
+// tard pour changer la reponse HTTP.
+export const dynamic = "force-dynamic";
 
 interface Props {
   children: React.ReactNode;
@@ -49,7 +54,12 @@ export default async function EventLayout({ children, params }: Props) {
   // Evenement renomme : l'ancienne adresse redirige en 308 vers la
   // nouvelle, pour les visiteurs comme pour les moteurs de recherche.
   const resolved = await resolveEventSlug(slug);
-  if (resolved?.isAlias) {
+
+  // Evenement supprime : un 404 franc, plutot qu'une page vide en 200 que
+  // Google garderait dans son index.
+  if (!resolved) notFound();
+
+  if (resolved.isAlias) {
     permanentRedirect(`/${locale}/evenements/${resolved.canonicalSlug}`);
   }
 
