@@ -20,14 +20,11 @@ export function Header() {
           <Link href={`/${locale}/evenements`} className="hover:text-cream transition-colors">
             {t("events")}
           </Link>
-          <Link href={`/${locale}#creer`} className="hover:text-cream transition-colors">
+          <Link href={`/${locale}/evenements/creer`} className="hover:text-cream transition-colors">
             {t("create_event")}
           </Link>
           <Link href={`/${locale}#participer`} className="hover:text-cream transition-colors">
             {t("participate")}
-          </Link>
-          <Link href={`/${locale}#tarifs`} className="hover:text-cream transition-colors">
-            {t("pricing")}
           </Link>
         </nav>
 

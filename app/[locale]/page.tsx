@@ -12,8 +12,6 @@ import {
   Globe,
   QrCode,
   ScanLine,
-  BadgeCheck,
-  Ticket,
 } from "lucide-react";
 interface EventItem {
   slug: string;
@@ -109,12 +107,6 @@ export default function LandingPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const pricing = [
-    { label: t("price1_label"), price: t("price1_value"), equiv: t("price1_equiv"), sub: t("price1_sub"), icon: Calendar },
-    { label: t("price2_label"), price: t("price2_value"), equiv: t("price2_equiv"), sub: t("price2_sub"), icon: BadgeCheck },
-    { label: t("price3_label"), price: t("price3_value"), equiv: t("price3_equiv"), sub: t("price3_sub"), icon: Ticket },
-  ];
-
   return (
     <section>
       {/* ─── HERO ─── */}
@@ -164,41 +156,6 @@ export default function LandingPage() {
               <s.icon className="w-6 h-6 text-gold mb-5" strokeWidth={1.5} />
               <h3 className="text-[18px] font-semibold text-ink mb-3">{s.title}</h3>
               <p className="text-[15px] text-mute leading-[1.7]">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ─── PRICING ─── */}
-      <div id="tarifs" className="max-w-7xl mx-auto px-5 lg:px-10 py-24 lg:py-32">
-        <h2 className="font-serif text-[30px] sm:text-[38px] text-ink mb-4">
-          {t("pricing_h2_pre")} <em className="text-gold not-italic">{t("pricing_h2_highlight")}</em>.
-        </h2>
-        <p className="text-[15px] text-mute mb-14 max-w-lg">{t("pricing_note")}</p>
-
-        <div className="grid sm:grid-cols-3 gap-6 max-w-4xl">
-          {pricing.map((p, i) => (
-            <div
-              key={p.label}
-              className={`rounded-2xl p-7 transition-all duration-300 ${
-                i === 0
-                  ? "bg-ink text-cream"
-                  : "bg-white border border-line hover:border-gold/20 hover:shadow-md"
-              }`}
-            >
-              <p.icon className={`w-5 h-5 mb-6 ${i === 0 ? "text-gold" : "text-gold/70"}`} strokeWidth={1.5} />
-              <p className={`text-[12px] uppercase tracking-wider font-medium mb-4 ${i === 0 ? "text-cream/40" : "text-mute"}`}>
-                {p.label}
-              </p>
-              <p className={`text-[36px] leading-none font-semibold ${i === 0 ? "text-cream" : "text-ink"}`} style={{ fontVariantNumeric: "tabular-nums" }}>
-                {p.price}
-              </p>
-              {p.equiv && (
-                <p className={`text-[12px] mt-2 ${i === 0 ? "text-cream/30" : "text-mute/50"}`}>{p.equiv}</p>
-              )}
-              <p className={`text-[14px] mt-5 leading-relaxed ${i === 0 ? "text-cream/50" : "text-mute"}`}>
-                {p.sub}
-              </p>
             </div>
           ))}
         </div>

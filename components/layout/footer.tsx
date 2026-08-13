@@ -26,7 +26,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-[13px] text-cream/50">
               <li>
-                <Link href={`/${locale}#creer`} className="hover:text-cream transition-colors">
+                <Link href={`/${locale}/evenements/creer`} className="hover:text-cream transition-colors">
                   {t("create_event")}
                 </Link>
               </li>
