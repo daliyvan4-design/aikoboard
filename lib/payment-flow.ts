@@ -1,10 +1,7 @@
 import { prisma } from "./prisma";
 import { log } from "./logger";
-import {
-  sendConfirmationEmail,
-  sendAdminNotificationEmail,
-  sendOrganizerAccessEmail,
-} from "./email";
+import { sendConfirmationEmail, sendAdminNotificationEmail } from "./email";
+import { sendOrganizerAccessBySlug } from "./organizer-access";
 
 /**
  * Effets d'un paiement réussi, en un seul endroit : le webhook GeniusPay et
@@ -22,10 +19,6 @@ export interface PaymentSuccessInput {
   type?: string | null;
   geniusRef?: string | null;
   method?: string | null;
-}
-
-function baseUrl(): string {
-  return (process.env.NEXTAUTH_URL ?? "https://aikoboard.com").replace(/\/$/, "");
 }
 
 function fmtDate(d: Date): string {
@@ -91,18 +84,8 @@ export async function applyPaymentSuccess(input: PaymentSuccessInput): Promise<v
     });
 
     if (count > 0) {
-      const event = await prisma.event.findUnique({ where: { slug: eventSlug } });
-      if (event) {
-        log.info("Evenement active apres paiement", { slug: event.slug, ref: payRef ?? undefined });
-        sendOrganizerAccessEmail({
-          to: event.contactEmail,
-          organisateur: event.organisateur,
-          eventName: event.nom,
-          eventDate: `${fmtDate(event.dateDebut)} - ${fmtDate(event.dateFin)}`,
-          manageUrl: `${baseUrl()}/fr/organisateur/${event.slug}?token=${event.manageToken ?? ""}`,
-          publicUrl: `${baseUrl()}/fr/evenements/${event.slug}`,
-        }).catch(() => {});
-      }
+      log.info("Evenement active apres paiement", { slug: eventSlug, ref: payRef ?? undefined });
+      sendOrganizerAccessBySlug(eventSlug).catch(() => {});
     }
   }
 }

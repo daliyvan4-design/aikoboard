@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/admin-auth";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { sendOrganizerAccess } from "@/lib/organizer-access";
 import { log } from "@/lib/logger";
 
 export async function PATCH(
@@ -52,10 +53,24 @@ export async function PATCH(
     }
   }
 
+  // Un evenement peut aussi etre active a la main par l'equipe AIKO, sans
+  // paiement : l'organisateur doit recevoir son lien de gestion dans ce cas
+  // aussi, sinon il n'a aucun moyen d'atteindre ses inscrits.
+  const before = await prisma.event.findUnique({
+    where: { id },
+    select: { statut: true },
+  });
+  const activating = body.statut === "actif" && before?.statut !== "actif";
+
   const event = await prisma.event.update({
     where: { id },
     data,
   });
+
+  if (activating) {
+    log.info("Evenement active manuellement", { slug: event.slug, action: "activate" });
+    sendOrganizerAccess(event).catch(() => {});
+  }
 
   return NextResponse.json({ success: true, data: event });
 }
