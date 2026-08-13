@@ -19,6 +19,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     { url: `${BASE}/fr`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1 },
     { url: `${BASE}/en`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
+    { url: `${BASE}/ar`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
+    // Page de conversion : c'est par la que passent les organisateurs.
+    { url: `${BASE}/fr/evenements/creer`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.9 },
     { url: `${BASE}/fr/residences`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 },
     { url: `${BASE}/fr/evenements`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.8 },
     { url: `${BASE}/en/evenements`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.7 },

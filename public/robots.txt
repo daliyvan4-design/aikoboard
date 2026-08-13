@@ -1,10 +1,14 @@
 User-agent: *
 Allow: /
+
+# API et back-office
 Disallow: /api/
-Disallow: /login
-Disallow: /dashboard
-Disallow: /commandes
-Disallow: /parametres
-Disallow: /rapports
+Disallow: /admin/
+
+# Pages privées ou personnelles : elles n'ont rien à faire dans un index
+Disallow: /*/organisateur/
+Disallow: /*/scan/
+Disallow: /*/mon-qr
+Disallow: /*/paiement/
 
 Sitemap: https://aikoboard.com/sitemap.xml
