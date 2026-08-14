@@ -255,15 +255,26 @@ function ScanPageContent() {
 
     try {
       const { Html5Qrcode } = await import("html5-qrcode");
-      const scanner = new Html5Qrcode("qr-reader");
+      // Decodeur natif du navigateur quand il existe : nettement plus
+      // fiable que le decodage logiciel sur telephone.
+      const scanner = new Html5Qrcode("qr-reader", {
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        verbose: false,
+      });
       html5QrRef.current = scanner;
 
       await scanner.start(
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 280, height: 280 },
-          aspectRatio: 1,
+          // Zone d'analyse calculee a partir du viseur reel plutot que
+          // figee a 280 px : avec une valeur fixe et un aspectRatio force,
+          // la zone scannee ne correspondait plus au cadre affiche — on
+          // visait le QR sans qu'il soit jamais analyse.
+          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+            const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.8);
+            return { width: size, height: size };
+          },
         },
         (decodedText: string) => {
           handleQrData(decodedText);
@@ -341,12 +352,14 @@ function ScanPageContent() {
           </p>
         </div>
 
-        {/* Scanner area */}
+        {/* Scanner area — pas de ratio impose : la camera d'un telephone
+            rend du 4:3 ou du 16:9, et forcer un carre rognait l'image
+            affichee sans rogner l'image analysee. */}
         <div className="relative rounded-2xl overflow-hidden bg-black mb-6">
           <div
             id="qr-reader"
             ref={scannerRef}
-            className="w-full aspect-square"
+            className="w-full"
             style={{ minHeight: 320 }}
           />
 
