@@ -36,7 +36,10 @@ export type CommandeInput = z.infer<typeof commandeSchema>;
 export const participantSchema = z.object({
   prenom: z.string().min(1).max(100),
   nom: z.string().min(1).max(100),
-  email: z.string().email().max(255),
+  // Nettoyé avant la validation : un espace colle par le clavier mobile ne
+  // doit pas produire un "email invalide", et la casse ne doit pas creer
+  // deux inscriptions distinctes.
+  email: z.string().trim().toLowerCase().pipe(z.string().email().max(255)),
   telephone: z.string().min(5).max(30),
   organisation: z.string().max(200).optional(),
   titre: z.string().max(200).optional(),
