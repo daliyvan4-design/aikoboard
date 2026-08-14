@@ -1,21 +1,48 @@
 {
   "name": "AIKO Board",
-  "short_name": "AIKO Board",
+  "short_name": "AIKO",
   "description": "Plateforme de création et gestion d'événements — Badges, tickets, QR check-in",
+  "lang": "fr",
+  "dir": "ltr",
   "start_url": "/fr",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
+  "orientation": "portrait",
+  "background_color": "#0A0A0A",
   "theme_color": "#0A0A0A",
+  "categories": ["business", "productivity", "events"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scanner des badges",
+      "short_name": "Scanner",
+      "description": "Ouvrir le scanner de QR codes",
+      "url": "/fr/evenements"
+    },
+    {
+      "name": "Mon QR code",
+      "short_name": "Mon QR",
+      "description": "Retrouver mon badge ou mon ticket",
+      "url": "/fr/mon-qr"
     }
   ]
 }
