@@ -97,30 +97,33 @@ export default function RapportsPage() {
 
             <div className="bg-white rounded-2xl border border-line p-5">
               <h3 className="font-serif text-[18px] text-ink mb-4">Événements actifs</h3>
-              <table className="w-full text-[13px]">
-                <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
-                  <tr>
-                    <th className="text-left font-medium py-2">Événement</th>
-                    <th className="text-right font-medium py-2">Participants</th>
-                    <th className="text-right font-medium py-2">Check-ins</th>
-                    <th className="text-right font-medium py-2">Revenus</th>
-                    <th className="text-right font-medium py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {eventStats.events.map((ev) => (
-                    <tr key={ev.slug}>
-                      <td className="py-3 text-ink font-medium">{ev.nom}</td>
-                      <td className="py-3 text-right mono text-mute">{ev.participants}</td>
-                      <td className="py-3 text-right mono text-mute">{ev.checkins}</td>
-                      <td className="py-3 text-right mono text-gold font-semibold">{fmt(ev.revenue)}</td>
-                      <td className="py-3 text-right text-mute text-[12px]">
-                        {new Date(ev.dateDebut).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                      </td>
+              {/* Un tableau large scrolle dans sa carte au lieu de pousser toute la page. */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-[13px]">
+                  <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
+                    <tr>
+                      <th className="text-left font-medium py-2">Événement</th>
+                      <th className="text-right font-medium py-2">Participants</th>
+                      <th className="text-right font-medium py-2">Check-ins</th>
+                      <th className="text-right font-medium py-2">Revenus</th>
+                      <th className="text-right font-medium py-2">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {eventStats.events.map((ev) => (
+                      <tr key={ev.slug}>
+                        <td className="py-3 text-ink font-medium">{ev.nom}</td>
+                        <td className="py-3 text-right mono text-mute">{ev.participants}</td>
+                        <td className="py-3 text-right mono text-mute">{ev.checkins}</td>
+                        <td className="py-3 text-right mono text-gold font-semibold">{fmt(ev.revenue)}</td>
+                        <td className="py-3 text-right text-mute text-[12px]">
+                          {new Date(ev.dateDebut).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -149,24 +152,27 @@ export default function RapportsPage() {
 
         <div className="bg-white rounded-2xl border border-line p-5 mb-8">
           <h3 className="font-serif text-[18px] text-ink mb-4">Top 5 services</h3>
-          <table className="w-full text-[13px]">
-            <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
-              <tr>
-                <th className="text-left font-medium py-2">Service</th>
-                <th className="text-right font-medium py-2">Quantité</th>
-                <th className="text-right font-medium py-2">CA généré</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {data?.topServices?.map((s: any, i: number) => (
-                <tr key={i}>
-                  <td className="py-3 text-ink font-medium">{s.nom}</td>
-                  <td className="py-3 text-right mono text-mute">{s.qty}</td>
-                  <td className="py-3 text-right mono text-ink font-semibold">{fmt(s.ca)}</td>
+          {/* Un tableau large scrolle dans sa carte au lieu de pousser toute la page. */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
+                <tr>
+                  <th className="text-left font-medium py-2">Service</th>
+                  <th className="text-right font-medium py-2">Quantité</th>
+                  <th className="text-right font-medium py-2">CA généré</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {data?.topServices?.map((s: any, i: number) => (
+                  <tr key={i}>
+                    <td className="py-3 text-ink font-medium">{s.nom}</td>
+                    <td className="py-3 text-right mono text-mute">{s.qty}</td>
+                    <td className="py-3 text-right mono text-ink font-semibold">{fmt(s.ca)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-line p-5">

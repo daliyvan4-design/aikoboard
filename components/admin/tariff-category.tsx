@@ -67,33 +67,36 @@ export function TariffCategory({
           <Plus size={12} /> Ajouter un tarif
         </button>
       </div>
-      <table className="w-full text-[13px]">
-        <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
-          <tr className="border-t border-line">
-            <th className="text-left font-medium px-5 py-3 w-2/5">Service</th>
-            <th className="text-right font-medium px-5 py-3">Prix XOF</th>
-            <th className="text-right font-medium px-5 py-3">Prix EUR</th>
-            <th className="text-right font-medium px-5 py-3">Prix USD</th>
-            <th className="text-right font-medium px-5 py-3 w-32">Visible</th>
-            <th className="px-5 py-3 w-10" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
-          {services.flatMap((svc) =>
-            svc.tarifs.map((t) => (
-              <TariffRow
-                key={t.id}
-                tarif={t}
-                serviceActif={svc.actif}
-                onLabelChange={onLabelChange}
-                onPriceChange={onPriceChange}
-                onToggleVisible={(v) => onToggleVisible(svc.id, v)}
-                onDelete={onDeleteTarif}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
+      {/* Un tableau large scrolle dans sa carte au lieu de pousser toute la page. */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-[13px]">
+          <thead className="text-[10px] uppercase tracking-[0.18em] text-mute">
+            <tr className="border-t border-line">
+              <th className="text-left font-medium px-5 py-3 w-2/5">Service</th>
+              <th className="text-right font-medium px-5 py-3">Prix XOF</th>
+              <th className="text-right font-medium px-5 py-3">Prix EUR</th>
+              <th className="text-right font-medium px-5 py-3">Prix USD</th>
+              <th className="text-right font-medium px-5 py-3 w-32">Visible</th>
+              <th className="px-5 py-3 w-10" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {services.flatMap((svc) =>
+              svc.tarifs.map((t) => (
+                <TariffRow
+                  key={t.id}
+                  tarif={t}
+                  serviceActif={svc.actif}
+                  onLabelChange={onLabelChange}
+                  onPriceChange={onPriceChange}
+                  onToggleVisible={(v) => onToggleVisible(svc.id, v)}
+                  onDelete={onDeleteTarif}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

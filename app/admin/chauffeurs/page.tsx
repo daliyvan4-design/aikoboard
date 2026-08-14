@@ -85,44 +85,47 @@ export default function ChauffeursPage() {
       </Topbar>
       <div className="p-6 lg:p-10">
         <div className="bg-white rounded-2xl border border-line overflow-hidden">
-          <table className="w-full text-[13px]">
-            <thead className="text-[10px] uppercase tracking-[0.18em] text-mute bg-cream/50">
-              <tr>
-                <th className="text-left font-medium px-5 py-3">Nom</th>
-                <th className="text-left font-medium px-5 py-3">Telephone</th>
-                <th className="text-left font-medium px-5 py-3">Véhicule</th>
-                <th className="text-left font-medium px-5 py-3">Immatriculation</th>
-                <th className="text-left font-medium px-5 py-3">Statut</th>
-                <th className="text-right font-medium px-5 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {chauffeurs.map((c) => {
-                const s = STATUT_STYLES[c.statut] || STATUT_STYLES.disponible;
-                return (
-                  <tr key={c.id} className="hover:bg-cream/40">
-                    <td className="px-5 py-4 text-ink font-medium">{c.nom}</td>
-                    <td className="px-5 py-4 text-mute mono">{c.telephone}</td>
-                    <td className="px-5 py-4 text-ink">{c.vehicule}</td>
-                    <td className="px-5 py-4 text-mute mono">{c.immatriculation}</td>
-                    <td className="px-5 py-4">
-                      <button
-                        onClick={() => handleStatusToggle(c)}
-                        className={`inline-flex items-center gap-1.5 text-[11px] ${s.bg} ${s.text} rounded-full px-2.5 py-1 cursor-pointer`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${s.text.replace("text-", "bg-")}`} />
-                        {s.label}
-                      </button>
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <button onClick={() => setEditing(c)} className="text-mute hover:text-ink"><Pencil size={14} /></button>
-                      <button onClick={() => handleDelete(c.id)} className="text-mute hover:text-err ml-2"><Trash2 size={14} /></button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {/* Un tableau large scrolle dans sa carte au lieu de pousser toute la page. */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead className="text-[10px] uppercase tracking-[0.18em] text-mute bg-cream/50">
+                <tr>
+                  <th className="text-left font-medium px-5 py-3">Nom</th>
+                  <th className="text-left font-medium px-5 py-3">Telephone</th>
+                  <th className="text-left font-medium px-5 py-3">Véhicule</th>
+                  <th className="text-left font-medium px-5 py-3">Immatriculation</th>
+                  <th className="text-left font-medium px-5 py-3">Statut</th>
+                  <th className="text-right font-medium px-5 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {chauffeurs.map((c) => {
+                  const s = STATUT_STYLES[c.statut] || STATUT_STYLES.disponible;
+                  return (
+                    <tr key={c.id} className="hover:bg-cream/40">
+                      <td className="px-5 py-4 text-ink font-medium">{c.nom}</td>
+                      <td className="px-5 py-4 text-mute mono">{c.telephone}</td>
+                      <td className="px-5 py-4 text-ink">{c.vehicule}</td>
+                      <td className="px-5 py-4 text-mute mono">{c.immatriculation}</td>
+                      <td className="px-5 py-4">
+                        <button
+                          onClick={() => handleStatusToggle(c)}
+                          className={`inline-flex items-center gap-1.5 text-[11px] ${s.bg} ${s.text} rounded-full px-2.5 py-1 cursor-pointer`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${s.text.replace("text-", "bg-")}`} />
+                          {s.label}
+                        </button>
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <button onClick={() => setEditing(c)} className="text-mute hover:text-ink"><Pencil size={14} /></button>
+                        <button onClick={() => handleDelete(c.id)} className="text-mute hover:text-err ml-2"><Trash2 size={14} /></button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

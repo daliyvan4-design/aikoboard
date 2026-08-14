@@ -189,17 +189,19 @@ export default function ParametresPage() {
 
           <div className="divide-y divide-line">
             {users.map((u) => (
-              <div key={u.id} className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold ${u.actif ? "bg-gold text-ink" : "bg-line text-mute"}`}>
+              <div key={u.id} className="flex items-center justify-between gap-3 py-3">
+                {/* min-w-0 + truncate : une adresse email longue debordait
+                    de la carte et poussait la page hors de l ecran. */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold ${u.actif ? "bg-gold text-ink" : "bg-line text-mute"}`}>
                     {u.nom?.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase()}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className={`text-[13px] font-medium ${u.actif ? "text-ink" : "text-mute line-through"}`}>{u.nom}</p>
                       <RoleBadge role={u.role} />
                     </div>
-                    <p className="text-[12px] text-mute">{u.email}</p>
+                    <p className="text-[12px] text-mute truncate">{u.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

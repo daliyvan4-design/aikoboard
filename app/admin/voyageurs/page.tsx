@@ -45,37 +45,40 @@ export default function VoyageursPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-line overflow-hidden">
-          <table className="w-full text-[13px]">
-            <thead className="text-[10px] uppercase tracking-[0.18em] text-mute bg-cream/50">
-              <tr>
-                <th className="text-left font-medium px-5 py-3">Voyageur</th>
-                <th className="text-left font-medium px-5 py-3">Email</th>
-                <th className="text-left font-medium px-5 py-3">Telephone</th>
-                <th className="text-left font-medium px-5 py-3">Nationalité</th>
-                <th className="text-right font-medium px-5 py-3">Commandes</th>
-                <th className="text-right font-medium px-5 py-3">Montant total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {voyageurs.map((v) => (
-                <tr key={v.email} className="hover:bg-cream/40">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-ink text-cream text-[11px] font-semibold flex items-center justify-center">
-                        {v.prenom[0]}{v.nom[0]}
-                      </div>
-                      <span className="text-ink font-medium">{v.prenom} {v.nom}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-mute">{v.email}</td>
-                  <td className="px-5 py-4 text-mute mono">{v.telephone}</td>
-                  <td className="px-5 py-4 text-mute">{v.nationalite}</td>
-                  <td className="px-5 py-4 text-right mono text-ink">{v.commandeCount}</td>
-                  <td className="px-5 py-4 text-right mono text-ink font-semibold">{fmt(v.totalAmount)}</td>
+          {/* Un tableau large scrolle dans sa carte au lieu de pousser toute la page. */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead className="text-[10px] uppercase tracking-[0.18em] text-mute bg-cream/50">
+                <tr>
+                  <th className="text-left font-medium px-5 py-3">Voyageur</th>
+                  <th className="text-left font-medium px-5 py-3">Email</th>
+                  <th className="text-left font-medium px-5 py-3">Telephone</th>
+                  <th className="text-left font-medium px-5 py-3">Nationalité</th>
+                  <th className="text-right font-medium px-5 py-3">Commandes</th>
+                  <th className="text-right font-medium px-5 py-3">Montant total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {voyageurs.map((v) => (
+                  <tr key={v.email} className="hover:bg-cream/40">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-ink text-cream text-[11px] font-semibold flex items-center justify-center">
+                          {v.prenom[0]}{v.nom[0]}
+                        </div>
+                        <span className="text-ink font-medium">{v.prenom} {v.nom}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-mute">{v.email}</td>
+                    <td className="px-5 py-4 text-mute mono">{v.telephone}</td>
+                    <td className="px-5 py-4 text-mute">{v.nationalite}</td>
+                    <td className="px-5 py-4 text-right mono text-ink">{v.commandeCount}</td>
+                    <td className="px-5 py-4 text-right mono text-ink font-semibold">{fmt(v.totalAmount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>
