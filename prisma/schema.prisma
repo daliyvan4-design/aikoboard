@@ -283,6 +283,10 @@ model Participant {
   createdAt     DateTime @default(now())
 
   @@unique([eventId, ticketNumber])
+  // Une adresse email ne s'inscrit qu'une fois par événement. La contrainte
+  // vit en base : deux inscriptions simultanées ne peuvent pas la contourner.
+  // Les emails sont stockés en minuscules pour que la règle ait un sens.
+  @@unique([eventId, email])
   @@index([eventId])
 }
 

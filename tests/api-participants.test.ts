@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 
 const prismaMock = {
   event: { findUnique: vi.fn() },
@@ -54,13 +55,15 @@ function makeRequest(body: unknown): NextRequest {
 const params = { params: Promise.resolve({ slug: "avca-2026" }) };
 
 /** $transaction(cb) exécutant le callback sur un client mocké. */
+let createdData: Record<string, unknown> = {};
+
 function withTransaction(opts: { taken: number; maxTicket: number | null }) {
   prismaMock.$transaction.mockImplementation(async (cb: (tx: unknown) => unknown) =>
     cb({
       participant: {
         count: vi.fn().mockResolvedValue(opts.taken),
         aggregate: vi.fn().mockResolvedValue({ _max: { ticketNumber: opts.maxTicket } }),
-        create: vi.fn().mockImplementation(({ data }: { data: Record<string, unknown> }) => ({
+        create: vi.fn().mockImplementation(({ data }: { data: Record<string, unknown> }) => ((createdData = data), {
           reference: data.reference,
           ticketNumber: data.ticketNumber,
           type: data.type,
@@ -130,6 +133,32 @@ describe("POST /api/events/[slug]/participants", () => {
 
     expect(res.status).toBe(400);
     expect(json.error).toMatch(/volumineuse/i);
+  });
+
+  it("refuse une seconde inscription avec la meme adresse email", async () => {
+    prismaMock.$transaction.mockRejectedValue(
+      Object.assign(new Prisma.PrismaClientKnownRequestError("doublon", {
+        code: "P2002",
+        clientVersion: "6.19.3",
+      }), { meta: { target: ["eventId", "email"] } }),
+    );
+    const { POST } = await import("@/app/api/events/[slug]/participants/route");
+
+    const res = await POST(makeRequest(validBody), params);
+    const json = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(json.code).toBe("ALREADY_REGISTERED");
+    // Un doublon est definitif : aucune tentative supplementaire
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("normalise l adresse email avant enregistrement", async () => {
+    const { POST } = await import("@/app/api/events/[slug]/participants/route");
+
+    await POST(makeRequest({ ...validBody, email: "  Amadou@Example.COM " }), params);
+
+    expect(createdData.email).toBe("amadou@example.com");
   });
 
   it("confirme directement une inscription gratuite", async () => {

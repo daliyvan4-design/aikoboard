@@ -190,7 +190,9 @@ export default function EventClient() {
         setPayError(
           data.code === "EVENT_FULL"
             ? "Cet événement est complet."
-            : data.error ?? "Inscription impossible. Réessayez.",
+            : data.code === "ALREADY_REGISTERED"
+              ? "Cette adresse email est déjà inscrite à cet événement."
+              : data.error ?? "Inscription impossible. Réessayez.",
         );
       }
     } catch {
@@ -236,7 +238,9 @@ export default function EventClient() {
         error:
           data.code === "EVENT_FULL"
             ? "Cet événement est complet."
-            : data.error ?? "Inscription impossible. Réessayez.",
+            : data.code === "ALREADY_REGISTERED"
+              ? "Cette adresse email est déjà inscrite à cet événement."
+              : data.error ?? "Inscription impossible. Réessayez.",
       };
     } catch {
       setUploadingPhoto(false);

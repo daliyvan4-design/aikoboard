@@ -60,6 +60,10 @@ export async function POST(
     }
     const body = parsed.data;
 
+    // Normalise l'adresse : sans cela "Bob@x.com" et "bob@x.com" seraient
+    // deux inscriptions differentes pour la contrainte d'unicite.
+    const email = body.email.trim().toLowerCase();
+
     const type = body.type ?? defaultParticipantType(event.type);
     // Le montant et le statut viennent du tarif de l'événement, jamais du client.
     const montant = expectedParticipantAmount(event, type);
@@ -108,7 +112,7 @@ export async function POST(
               ticketNumber: (last._max.ticketNumber ?? 0) + 1,
               prenom: body.prenom,
               nom: body.nom,
-              email: body.email,
+              email,
               telephone: body.telephone,
               organisation: body.organisation,
               titre: body.titre,
@@ -129,9 +133,26 @@ export async function POST(
             { status: 409 },
           );
         }
-        const isCollision =
-          err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
-        if (!isCollision || attempt === MAX_TICKET_ATTEMPTS - 1) throw err;
+
+        const conflict =
+          err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002"
+            ? (err.meta?.target as string[] | string | undefined)
+            : undefined;
+        const conflictFields = Array.isArray(conflict) ? conflict : conflict ? [conflict] : [];
+
+        // Deja inscrit avec cette adresse : inutile de retenter, c'est un
+        // refus definitif et non une collision de numero de ticket.
+        if (conflictFields.includes("email")) {
+          return NextResponse.json(
+            {
+              error: "Cette adresse email est deja inscrite a cet evenement",
+              code: "ALREADY_REGISTERED",
+            },
+            { status: 409 },
+          );
+        }
+
+        if (conflictFields.length === 0 || attempt === MAX_TICKET_ATTEMPTS - 1) throw err;
       }
     }
 
@@ -139,9 +160,9 @@ export async function POST(
       return NextResponse.json({ error: "Erreur inscription" }, { status: 500 });
     }
 
-    if (statut === "confirme" && body.email) {
+    if (statut === "confirme" && email) {
       sendConfirmationEmail({
-        to: body.email,
+        to: email,
         participantName: `${body.prenom} ${body.nom}`,
         eventName: event.nom,
         eventDate: formatDateRange(event.dateDebut, event.dateFin),
