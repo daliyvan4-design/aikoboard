@@ -55,6 +55,19 @@ npm run lint        # ESLint (config plate)
 La CI GitHub Actions rejoue `lint`, `typecheck` et `test` sur chaque push et
 chaque pull request.
 
+### Vérifier le responsive téléphone
+
+```bash
+npx playwright install chromium        # une seule fois
+npx tsx scripts/audit-mobile.ts        # audite la production
+AUDIT_BASE=http://localhost:3000 npx tsx scripts/audit-mobile.ts
+```
+
+Le script charge chaque page dans un vrai navigateur en 375 px et 360 px, et
+signale tout débordement horizontal avec l'élément fautif — le défaut qui
+force l'utilisateur à scroller latéralement. Passer `AUDIT_TOKEN=<token>` pour
+inclure les pages privées de l'organisateur.
+
 ## Architecture
 
 ### Cycle de vie d'un événement

@@ -82,7 +82,10 @@ export default function EvenementsPage() {
               className="w-full bg-cream2 border border-line rounded-xl pl-10 pr-4 py-3 text-[14px] focus:border-gold focus:ring-1 focus:ring-gold/30"
             />
           </div>
-          <div className="flex gap-2">
+          {/* Les filtres passent a la ligne plutot que de deborder de
+              l'ecran : a 360 px ils depassaient de 41 px, poussant toute
+              la page vers un scroll horizontal. */}
+          <div className="flex flex-wrap gap-2">
             {(["all", "conference", "concert", "hackathon"] as const).map((f) => (
               <button
                 key={f}

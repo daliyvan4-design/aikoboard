@@ -87,11 +87,14 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
               <label className="block text-[12px] font-medium text-ink mb-3 uppercase tracking-wider">
                 Type de réservation
               </label>
-              <div className="flex gap-3">
+              {/* Empiles sur telephone : cote a cote, "VIP · Délégation
+                  d'État" ne peut pas retrecir et elargit toute la carte,
+                  ce qui faisait deborder le formulaire de 21 px a 360 px. */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={() => onTypeChange("NORMALE")}
-                  className={`flex-1 rounded-xl border px-5 py-3.5 text-[14px] font-medium transition-all ${
+                  className={`flex-1 min-w-0 rounded-xl border px-5 py-3.5 text-[14px] font-medium transition-all ${
                     typeReservation === "NORMALE"
                       ? "border-gold bg-gold/10 text-ink"
                       : "border-line bg-white text-mute hover:border-gold/40"
@@ -103,7 +106,7 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
                 <button
                   type="button"
                   onClick={() => onTypeChange("INSTITUTIONNELLE")}
-                  className={`flex-1 rounded-xl border px-5 py-3.5 text-[14px] font-medium transition-all ${
+                  className={`flex-1 min-w-0 rounded-xl border px-5 py-3.5 text-[14px] font-medium transition-all ${
                     typeReservation === "INSTITUTIONNELLE"
                       ? "border-gold bg-gold/10 text-ink"
                       : "border-line bg-white text-mute hover:border-gold/40"
@@ -188,7 +191,7 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
                   onChange={(e) =>
                     update(data, "indicatif", e.target.value, onChange)
                   }
-                  className="bg-cream border border-line rounded-xl px-3 py-3.5 text-[15px] mono w-28"
+                  className="bg-cream border border-line rounded-xl px-3 py-3.5 text-[15px] mono w-24 shrink-0"
                 >
                   <option value="+225">{"\u{1F1E8}\u{1F1EE}"} +225</option>
                   <option value="+33">{"\u{1F1EB}\u{1F1F7}"} +33</option>
@@ -206,7 +209,7 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
                   onChange={(e) =>
                     update(data, "telephone", e.target.value, onChange)
                   }
-                  className="flex-1 bg-cream border border-line rounded-xl px-4 py-3.5 text-[15px] mono"
+                  className="flex-1 min-w-0 bg-cream border border-line rounded-xl px-4 py-3.5 text-[15px] mono"
                 />
               </div>
             </div>
@@ -455,8 +458,10 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
               <label className="block text-[12px] font-medium text-ink mb-2 uppercase tracking-wider">
                 {t("f.visaState")}
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <label className="bg-cream border border-line rounded-xl px-4 py-3.5 text-[14px] cursor-pointer flex items-center gap-3">
+              {/* Une colonne sur telephone : a 360 px, trois options de
+                  visa cote a cote debordaient de 21 px. */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <label className="bg-cream border border-line rounded-xl px-4 py-3.5 text-[14px] cursor-pointer flex items-center gap-3 min-w-0">
                   <input
                     type="radio"
                     name="visaState"
@@ -469,7 +474,7 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
                   />
                   <span>{t("visa.ok")}</span>
                 </label>
-                <label className="bg-cream border border-line rounded-xl px-4 py-3.5 text-[14px] cursor-pointer flex items-center gap-3">
+                <label className="bg-cream border border-line rounded-xl px-4 py-3.5 text-[14px] cursor-pointer flex items-center gap-3 min-w-0">
                   <input
                     type="radio"
                     name="visaState"
@@ -482,7 +487,7 @@ export function StepIdentity({ data, onChange, typeReservation, onTypeChange, on
                   />
                   <span>{t("visa.pending")}</span>
                 </label>
-                <label className="bg-cream border border-line rounded-xl px-4 py-3.5 text-[14px] cursor-pointer flex items-center gap-3">
+                <label className="bg-cream border border-line rounded-xl px-4 py-3.5 text-[14px] cursor-pointer flex items-center gap-3 min-w-0">
                   <input
                     type="radio"
                     name="visaState"
