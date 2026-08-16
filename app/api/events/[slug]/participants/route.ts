@@ -9,6 +9,7 @@ import { uploadBase64Image } from "@/lib/cloudinary";
 import { expectedParticipantAmount, defaultParticipantType } from "@/lib/pricing";
 import { assertEventAccess } from "@/lib/event-access";
 import { intersectWithPack } from "@/lib/event-services";
+import { createQuoteFromRegistration } from "@/lib/event-quote";
 import { log } from "@/lib/logger";
 
 /** Statuts qui occupent une place dans la jauge de capacité. */
@@ -68,6 +69,10 @@ export async function POST(
     // Services demandes : uniquement ceux que l evenement propose
     const serviceIds = intersectWithPack(raw.serviceIds, event.serviceIds);
 
+    const sejourArrivee = raw.dateArrivee ? new Date(raw.dateArrivee) : event.dateDebut;
+    const sejourDepart = raw.dateDepart ? new Date(raw.dateDepart) : event.dateFin;
+    const nombrePersonnes = Math.max(1, Math.min(20, parseInt(raw.nombrePersonnes) || 1));
+
     const type = body.type ?? defaultParticipantType(event.type);
     // Le montant et le statut viennent du tarif de l'événement, jamais du client.
     const montant = expectedParticipantAmount(event, type);
@@ -92,7 +97,7 @@ export async function POST(
     // inscriptions simultanées ne peuvent plus dépasser la jauge ni
     // recevoir le même numéro. La contrainte unique (eventId, ticketNumber)
     // sert de filet — en cas de collision on retente.
-    let participant: { reference: string; ticketNumber: number; type: string } | null = null;
+    let participant: { id: string; reference: string; ticketNumber: number; type: string } | null = null;
 
     for (let attempt = 0; attempt < MAX_TICKET_ATTEMPTS; attempt++) {
       try {
@@ -127,7 +132,7 @@ export async function POST(
               residenceTarifId: body.residenceTarifId ?? null,
               serviceIds,
             },
-            select: { reference: true, ticketNumber: true, type: true },
+            select: { id: true, reference: true, ticketNumber: true, type: true },
           });
         });
         break;
@@ -164,6 +169,24 @@ export async function POST(
     if (!participant) {
       return NextResponse.json({ error: "Erreur inscription" }, { status: 500 });
     }
+    const participantId = participant.id;
+
+    // Services de conciergerie : un devis a chiffrer par l'equipe, jamais
+    // un debit automatique — la moitie du catalogue se facture a la duree.
+    let quote: { reference: string; montantTotal: number } | null = null;
+    if (serviceIds.length > 0) {
+      quote = await createQuoteFromRegistration({
+        participantId: participantId!,
+        prenom: body.prenom,
+        nom: body.nom,
+        email,
+        telephone: body.telephone,
+        serviceIds,
+        dateArrivee: isNaN(sejourArrivee.getTime()) ? event.dateDebut : sejourArrivee,
+        dateDepart: isNaN(sejourDepart.getTime()) ? event.dateFin : sejourDepart,
+        nombrePersonnes,
+      });
+    }
 
     if (statut === "confirme" && email) {
       sendConfirmationEmail({
@@ -196,6 +219,7 @@ export async function POST(
         montant,
         statut,
         serviceIds,
+        devis: quote?.reference ?? null,
       },
     });
   } catch (err) {

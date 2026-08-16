@@ -111,6 +111,7 @@ export default function EventClient() {
   const [payError, setPayError] = useState("");
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [sejour, setSejour] = useState({ dateArrivee: "", dateDepart: "", nombrePersonnes: "1" });
   const [downloading, setDownloading] = useState(false);
 
   const displayRef = ref;
@@ -182,6 +183,9 @@ export default function EventClient() {
           montant: 0,
           residenceTarifId: selectedTarifId,
           serviceIds: selectedServices,
+          dateArrivee: sejour.dateArrivee || undefined,
+          dateDepart: sejour.dateDepart || undefined,
+          nombrePersonnes: sejour.nombrePersonnes,
         }),
       });
       const data = await res.json();
@@ -231,6 +235,9 @@ export default function EventClient() {
           type: isConcert ? "ticket" : "badge",
           residenceTarifId: selectedTarifId,
           serviceIds: selectedServices,
+          dateArrivee: sejour.dateArrivee || undefined,
+          dateDepart: sejour.dateDepart || undefined,
+          nombrePersonnes: sejour.nombrePersonnes,
         }),
       });
       const data = await res.json();
@@ -672,6 +679,51 @@ export default function EventClient() {
                     selected={selectedServices}
                     onChange={setSelectedServices}
                   />
+
+                  {selectedServices.length > 0 && (
+                    <div className="mt-5 bg-cream2 border border-line rounded-xl p-4 animate-fade-up">
+                      <p className="text-[12px] text-mute mb-3">
+                        {t("services_stay")}
+                      </p>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                            {t("services_arrival")}
+                          </label>
+                          <input
+                            type="date"
+                            value={sejour.dateArrivee}
+                            onChange={(e) => setSejour({ ...sejour, dateArrivee: e.target.value })}
+                            className="w-full min-w-0 bg-white border border-line rounded-xl px-3 py-2.5 text-[14px]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                            {t("services_departure")}
+                          </label>
+                          <input
+                            type="date"
+                            value={sejour.dateDepart}
+                            onChange={(e) => setSejour({ ...sejour, dateDepart: e.target.value })}
+                            className="w-full min-w-0 bg-white border border-line rounded-xl px-3 py-2.5 text-[14px]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                            {t("services_people")}
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={sejour.nombrePersonnes}
+                            onChange={(e) => setSejour({ ...sejour, nombrePersonnes: e.target.value })}
+                            className="w-full min-w-0 bg-white border border-line rounded-xl px-3 py-2.5 text-[14px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
