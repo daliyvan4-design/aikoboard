@@ -69,6 +69,13 @@ function drawCropMarks(doc: jsPDF) {
   }
 }
 
+/**
+ * Recto : colonne doree, photo, puis le nom en dominante.
+ *
+ * Le QR ne figure plus ici — il occupe tout le verso, sur fond blanc, la
+ * ou les lecteurs le trouvent le plus vite. Le recto sert a identifier la
+ * personne a deux metres, dans une file d'entree.
+ */
 function drawRecto(
   doc: jsPDF,
   pos: { x: number; y: number },
@@ -76,31 +83,42 @@ function drawRecto(
   p: PvcBadgeData["participants"][0],
 ) {
   const { x, y } = pos;
-  const pad = 3;
   const isConference = data.eventType !== "concert";
-  const photoSize = 16;
 
-  // Navy background
+  const COLUMN_W = 3.2;
+  const gutter = 4;
+  const contentX = x + COLUMN_W + gutter;
+  const rightEdge = x + CARD_W - gutter;
+
+  const photoW = 16;
+  const photoH = 20;
+  const showPhoto = isConference;
+
   doc.setFillColor(...NAVY);
   doc.rect(x, y, CARD_W, CARD_H, "F");
 
-  // Gold top accent line
+  // Colonne doree pleine hauteur : l'accent de marque, sans bandeau
   doc.setFillColor(...GOLD);
-  doc.rect(x, y, CARD_W, 1.2, "F");
+  doc.rect(x, y, COLUMN_W, CARD_H, "F");
 
-  // Header: logo + event name
-  let yc = y + 3.5;
+  // ── En-tete : evenement et dates, en retrait
+  let headerX = contentX;
   if (data.logoDataUrl) {
     try {
-      doc.addImage(data.logoDataUrl, "PNG", x + pad, yc, 5.5, 5.5);
+      doc.addImage(data.logoDataUrl, "PNG", contentX, y + 4.2, 5, 5);
+      headerX = contentX + 6.5;
     } catch {}
   }
-  const logoOffset = data.logoDataUrl ? 10 : 0;
   doc.setTextColor(...WHITE);
-  doc.setFontSize(5.5);
+  doc.setFontSize(5);
   doc.setFont("helvetica", "bold");
-  const evLines = doc.splitTextToSize(data.eventName, CARD_W - pad * 2 - logoOffset - (isConference ? 18 : 0));
-  doc.text(evLines.slice(0, 2), x + pad + logoOffset, yc + 3);
+  const evLines = doc.splitTextToSize(data.eventName.toUpperCase(), rightEdge - headerX - 2);
+  doc.text(evLines.slice(0, 1), headerX, y + 6.5);
+
+  doc.setTextColor(...SILVER);
+  doc.setFontSize(4);
+  doc.setFont("helvetica", "normal");
+  doc.text(data.eventDate, headerX, y + 9.8);
 
   // Pastille de categorie (VIP, SPEAKER, PRESSE...) : affichee seulement si
   // l'evenement en definit une. Auparavant elle retombait sur "DELEGATE",
@@ -109,107 +127,95 @@ function drawRecto(
   if (badgeLabel) {
     const labelW = doc.getStringUnitWidth(badgeLabel) * 5 / doc.internal.scaleFactor + 4;
     doc.setFillColor(...GOLD);
-    doc.roundedRect(x + CARD_W - pad - labelW, yc, labelW, 5.5, 1, 1, "F");
+    doc.roundedRect(rightEdge - labelW, y + 3.6, labelW, 5, 1, 1, "F");
     doc.setTextColor(...NAVY);
-    doc.setFontSize(5);
+    doc.setFontSize(4.5);
     doc.setFont("helvetica", "bold");
-    doc.text(badgeLabel, x + CARD_W - pad - labelW / 2, yc + 3.8, { align: "center" });
+    doc.text(badgeLabel, rightEdge - labelW / 2, y + 7, { align: "center" });
   }
 
-  // Thin separator
-  yc = y + 11;
-  doc.setDrawColor(...DARK_LINE);
-  doc.setLineWidth(0.15);
-  doc.line(x + pad, yc, x + CARD_W - pad, yc);
-  yc += 2;
+  // ── Bloc central : photo puis identite
+  const blockY = y + 14;
 
-  // Photo frame + name block
-  const nameBlockX = isConference && p.photoDataUrl ? x + pad + photoSize + 3 : x + pad;
-  const nameBlockW = isConference && p.photoDataUrl ? CARD_W - pad * 2 - photoSize - 3 : CARD_W - pad * 2;
-
-  if (isConference && p.photoDataUrl) {
-    // Gold border around photo
+  if (showPhoto) {
     doc.setDrawColor(...GOLD);
-    doc.setLineWidth(0.4);
-    doc.rect(x + pad - 0.3, yc - 0.3, photoSize + 0.6, photoSize + 0.6);
-    try {
-      doc.addImage(p.photoDataUrl, "JPEG", x + pad, yc, photoSize, photoSize);
-    } catch {
-      // Empty photo frame placeholder
-      doc.setFillColor(30, 45, 65);
-      doc.rect(x + pad, yc, photoSize, photoSize, "F");
-      doc.setTextColor(...SILVER);
-      doc.setFontSize(4);
-      doc.text("PHOTO", x + pad + photoSize / 2, yc + photoSize / 2 + 1, { align: "center" });
+    doc.setLineWidth(0.35);
+    doc.rect(contentX - 0.3, blockY - 0.3, photoW + 0.6, photoH + 0.6);
+    let drawn = false;
+    if (p.photoDataUrl) {
+      try {
+        doc.addImage(p.photoDataUrl, "JPEG", contentX, blockY, photoW, photoH);
+        drawn = true;
+      } catch {
+        drawn = false;
+      }
     }
-  } else if (isConference) {
-    // Empty photo frame for conferences without photo
-    doc.setDrawColor(...GOLD);
-    doc.setLineWidth(0.4);
-    doc.rect(x + pad - 0.3, yc - 0.3, photoSize + 0.6, photoSize + 0.6);
-    doc.setFillColor(30, 45, 65);
-    doc.rect(x + pad, yc, photoSize, photoSize, "F");
-    doc.setTextColor(...SILVER);
-    doc.setFontSize(4);
-    doc.text("PHOTO", x + pad + photoSize / 2, yc + photoSize / 2 + 1, { align: "center" });
+    if (!drawn) {
+      doc.setFillColor(...DARK_LINE);
+      doc.rect(contentX, blockY, photoW, photoH, "F");
+      doc.setTextColor(...SILVER);
+      doc.setFontSize(3.6);
+      doc.text("PHOTO", contentX + photoW / 2, blockY + photoH / 2 + 1, { align: "center" });
+    }
   }
 
-  // Participant name
-  const nameY = yc + 3.5;
-  doc.setTextColor(...WHITE);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  const nameLines = doc.splitTextToSize(p.name, nameBlockW);
-  doc.text(nameLines.slice(0, 2), nameBlockX, nameY);
+  const nameX = showPhoto ? contentX + photoW + 4.5 : contentX;
+  const nameW = rightEdge - nameX;
 
-  // Title (MANAGING DIRECTOR, etc.)
-  let infoY = nameY + nameLines.slice(0, 2).length * 4;
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  const nameLines = doc.splitTextToSize(p.name, nameW).slice(0, 2);
+  let cursor = blockY + (nameLines.length > 1 ? 5.5 : 7);
+  doc.text(nameLines, nameX, cursor);
+  cursor += nameLines.length * 4.4 + 1.4;
+
   if (p.titre) {
     doc.setTextColor(...GOLD);
-    doc.setFontSize(5);
+    doc.setFontSize(4.8);
     doc.setFont("helvetica", "bold");
-    doc.text(p.titre.toUpperCase(), nameBlockX, infoY);
-    infoY += 3;
+    doc.text(doc.splitTextToSize(p.titre.toUpperCase(), nameW).slice(0, 1), nameX, cursor);
+    cursor += 3.4;
   }
 
-  // Organisation
   if (p.organisation) {
     doc.setTextColor(...SILVER);
-    doc.setFontSize(5.5);
+    doc.setFontSize(5);
     doc.setFont("helvetica", "normal");
-    doc.text(p.organisation, nameBlockX, infoY);
+    doc.text(doc.splitTextToSize(p.organisation, nameW).slice(0, 1), nameX, cursor);
   }
 
-  // Bottom section
-  const bottomY = y + CARD_H - 12;
-
-  // Separator
+  // ── Pied : lieu a gauche, numero a droite
+  const bottomY = y + CARD_H - 8;
   doc.setDrawColor(...DARK_LINE);
   doc.setLineWidth(0.15);
-  doc.line(x + pad, bottomY, x + CARD_W - pad, bottomY);
+  doc.line(contentX, bottomY, rightEdge, bottomY);
 
-  // Location + date with small icons (text-based)
   doc.setTextColor(...SILVER);
-  doc.setFontSize(4.5);
+  doc.setFontSize(4.2);
   doc.setFont("helvetica", "normal");
-  doc.text(data.eventLieu, x + pad, bottomY + 3.5);
-  doc.text(data.eventDate, x + pad, bottomY + 7);
+  doc.text(doc.splitTextToSize(data.eventLieu, CARD_W * 0.55).slice(0, 1), contentX, bottomY + 3.6);
 
-  // Badge number bottom-right
-  doc.setTextColor(...GOLD);
-  doc.setFontSize(4);
-  doc.setFont("helvetica", "bold");
-  doc.text("N°", x + CARD_W - pad - 12, bottomY + 3.5);
-  doc.setTextColor(...WHITE);
-  doc.setFontSize(7);
-  doc.text(String(p.badgeNumber).padStart(4, "0"), x + CARD_W - pad, bottomY + 4, { align: "right" });
-
-  // Tagline at very bottom
   doc.setTextColor(50, 65, 85);
-  doc.setFontSize(3);
-  doc.text("POWERED BY AIKO BOARD", x + CARD_W / 2, y + CARD_H - 1.5, { align: "center" });
+  doc.setFontSize(3.2);
+  doc.text("AIKO BOARD", contentX, bottomY + 6.6);
+
+  doc.setTextColor(...GOLD);
+  doc.setFontSize(3.8);
+  doc.setFont("helvetica", "bold");
+  doc.text("N°", rightEdge - 9.5, bottomY + 3.6);
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(8);
+  doc.text(String(p.badgeNumber).padStart(4, "0"), rightEdge, bottomY + 4, { align: "right" });
 }
 
+/**
+ * Verso : le QR, en grand, sur fond blanc.
+ *
+ * Fond clair volontaire : les lecteurs attendent du sombre sur du clair.
+ * Un QR dore sur fond encre passe sur un bon capteur en pleine lumiere et
+ * echoue partout ailleurs.
+ */
 function drawVerso(
   doc: jsPDF,
   pos: { x: number; y: number },
@@ -217,63 +223,59 @@ function drawVerso(
   p: PvcBadgeData["participants"][0],
 ) {
   const { x, y } = pos;
-  const pad = 3;
+  const pad = 4;
 
-  // Navy background
-  doc.setFillColor(...NAVY);
+  doc.setFillColor(...WHITE);
   doc.rect(x, y, CARD_W, CARD_H, "F");
 
-  // Gold bottom accent line
+  // Bandeau dore : nom de l'evenement et numero de badge
+  const bandH = 7;
   doc.setFillColor(...GOLD);
-  doc.rect(x, y + CARD_H - 1.2, CARD_W, 1.2, "F");
+  doc.rect(x, y, CARD_W, bandH, "F");
 
-  // QR Code centered
-  const qrSize = 22;
+  doc.setTextColor(...NAVY);
+  doc.setFontSize(4.6);
+  doc.setFont("helvetica", "bold");
+  doc.text(
+    doc.splitTextToSize(data.eventName.toUpperCase(), CARD_W - pad * 2 - 14).slice(0, 1),
+    x + pad,
+    y + 4.6,
+  );
+  doc.setFontSize(5.5);
+  doc.text(`N°${String(p.badgeNumber).padStart(4, "0")}`, x + CARD_W - pad, y + 4.8, {
+    align: "right",
+  });
+
+  // QR : la piece maitresse de cette face
+  const qrSize = 27;
   const qrX = x + (CARD_W - qrSize) / 2;
-  const qrY = y + 4;
-
-  // White background for QR readability
-  doc.setFillColor(...WHITE);
-  doc.rect(qrX - 1, qrY - 1, qrSize + 2, qrSize + 2, "F");
+  const qrY = y + bandH + 2.5;
   try {
     doc.addImage(p.qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
   } catch {}
 
-  // Reference
-  let yc = qrY + qrSize + 3;
-  doc.setTextColor(...GOLD);
-  doc.setFontSize(4);
-  doc.setFont("helvetica", "bold");
-  doc.text("REFERENCE", x + CARD_W / 2, yc, { align: "center" });
-  yc += 3.5;
-  doc.setTextColor(...WHITE);
+  // Reference sous le code
+  let yc = qrY + qrSize + 4;
+  doc.setTextColor(...NAVY);
   doc.setFontSize(7);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("courier", "bold");
   doc.text(p.reference, x + CARD_W / 2, yc, { align: "center" });
-  yc += 4;
 
-  // Name
-  doc.setTextColor(...SILVER);
-  doc.setFontSize(5);
+  yc += 3.6;
+  doc.setTextColor(130, 130, 130);
+  doc.setFontSize(4.2);
   doc.setFont("helvetica", "normal");
   doc.text(p.name, x + CARD_W / 2, yc, { align: "center" });
-  yc += 5;
 
-  // Separator
-  doc.setDrawColor(...DARK_LINE);
-  doc.setLineWidth(0.15);
-  doc.line(x + pad + 10, yc, x + CARD_W - pad - 10, yc);
-  yc += 3;
-
-  // Non-transferable notice
-  doc.setTextColor(70, 85, 105);
-  doc.setFontSize(3.5);
-  doc.text("CE BADGE EST PERSONNEL ET NON TRANSFERABLE", x + CARD_W / 2, yc, { align: "center" });
-
-  // Scan instruction at bottom
-  doc.setTextColor(...GOLD);
-  doc.setFontSize(3.5);
-  doc.text("SCANNEZ AVEC AIKO BOARD", x + CARD_W / 2, y + CARD_H - 3.5, { align: "center" });
+  // Mentions de pied
+  doc.setTextColor(160, 160, 160);
+  doc.setFontSize(3.2);
+  doc.text(
+    "BADGE PERSONNEL ET NON TRANSFERABLE · AIKOBOARD.COM",
+    x + CARD_W / 2,
+    y + CARD_H - 2.4,
+    { align: "center" },
+  );
 }
 
 export function generatePvcBadgePDF(data: PvcBadgeData): jsPDF {

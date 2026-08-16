@@ -202,7 +202,8 @@ function ScanPageContent() {
       const qrDataUrl = await QRCode.toDataURL(qrValue, {
         width: 512,
         margin: 1,
-        color: { dark: "#C8A951", light: "#0A0A0A" },
+        // Verso blanc : contraste standard, celui que les lecteurs attendent
+        color: { dark: "#0A1628", light: "#FFFFFF" },
         errorCorrectionLevel: "M",
       });
 
