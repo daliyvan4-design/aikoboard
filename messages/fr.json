@@ -672,7 +672,8 @@
     "services_arrival": "Arrivée",
     "services_departure": "Départ",
     "services_people": "Personnes",
-    "services_quote": "Votre demande de conciergerie a bien été transmise. Vous recevrez un devis."
+    "services_quote": "Votre demande de conciergerie a bien été transmise. Vous recevrez un devis.",
+    "services_nationality": "Nationalité"
   },
   "residence": {
     "title": "Résidences disponibles",

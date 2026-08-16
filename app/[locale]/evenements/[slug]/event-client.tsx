@@ -1,6 +1,7 @@
 "use client";
 
 import { ServicePicker, type PickerService } from "@/components/services/service-picker";
+import { COUNTRIES_PRIORITY, COUNTRIES_OTHER } from "@/lib/countries";
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -111,7 +112,13 @@ export default function EventClient() {
   const [payError, setPayError] = useState("");
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [sejour, setSejour] = useState({ dateArrivee: "", dateDepart: "", nombrePersonnes: "1" });
+  const [wantsServices, setWantsServices] = useState(false);
+  const [sejour, setSejour] = useState({
+    dateArrivee: "",
+    dateDepart: "",
+    nombrePersonnes: "1",
+    nationalite: "CI",
+  });
   const [downloading, setDownloading] = useState(false);
 
   const displayRef = ref;
@@ -182,10 +189,11 @@ export default function EventClient() {
           type: isConcert ? "ticket" : "badge",
           montant: 0,
           residenceTarifId: selectedTarifId,
-          serviceIds: selectedServices,
+          serviceIds: wantsServices ? selectedServices : [],
           dateArrivee: sejour.dateArrivee || undefined,
           dateDepart: sejour.dateDepart || undefined,
           nombrePersonnes: sejour.nombrePersonnes,
+          nationalite: sejour.nationalite,
         }),
       });
       const data = await res.json();
@@ -234,10 +242,11 @@ export default function EventClient() {
           photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
           residenceTarifId: selectedTarifId,
-          serviceIds: selectedServices,
+          serviceIds: wantsServices ? selectedServices : [],
           dateArrivee: sejour.dateArrivee || undefined,
           dateDepart: sejour.dateDepart || undefined,
           nombrePersonnes: sejour.nombrePersonnes,
+          nationalite: sejour.nationalite,
         }),
       });
       const data = await res.json();
@@ -670,17 +679,30 @@ export default function EventClient() {
 
               {event.services && event.services.length > 0 && (
                 <div className="md:col-span-2 border-t border-line pt-6">
-                  <p className="text-[14px] text-ink font-medium mb-1">
-                    {t("services_title")}
-                  </p>
-                  <p className="text-[12px] text-mute mb-4">{t("services_lead")}</p>
+                  <label className="flex items-start gap-3 cursor-pointer mb-4">
+                    <input
+                      type="checkbox"
+                      checked={wantsServices}
+                      onChange={(e) => setWantsServices(e.target.checked)}
+                      className="accent-gold w-5 h-5 mt-0.5 shrink-0"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-[14px] text-ink font-medium">
+                        {t("services_title")}
+                      </span>
+                      <span className="block text-[12px] text-mute mt-1">{t("services_lead")}</span>
+                    </span>
+                  </label>
+
+                  {wantsServices && (
                   <ServicePicker
                     services={event.services}
                     selected={selectedServices}
                     onChange={setSelectedServices}
                   />
+                  )}
 
-                  {selectedServices.length > 0 && (
+                  {wantsServices && selectedServices.length > 0 && (
                     <div className="mt-5 bg-cream2 border border-line rounded-xl p-4 animate-fade-up">
                       <p className="text-[12px] text-mute mb-3">
                         {t("services_stay")}
@@ -721,6 +743,25 @@ export default function EventClient() {
                             className="w-full min-w-0 bg-white border border-line rounded-xl px-3 py-2.5 text-[14px]"
                           />
                         </div>
+                      </div>
+
+                      <div className="mt-3">
+                        <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                          {t("services_nationality")}
+                        </label>
+                        <select
+                          value={sejour.nationalite}
+                          onChange={(e) => setSejour({ ...sejour, nationalite: e.target.value })}
+                          className="w-full min-w-0 bg-white border border-line rounded-xl px-3 py-2.5 text-[14px]"
+                        >
+                          {COUNTRIES_PRIORITY.map((c) => (
+                            <option key={c.code} value={c.code}>{c.nom}</option>
+                          ))}
+                          <option disabled>──────────</option>
+                          {COUNTRIES_OTHER.map((c) => (
+                            <option key={c.code} value={c.code}>{c.nom}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   )}

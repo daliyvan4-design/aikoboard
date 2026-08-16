@@ -367,11 +367,14 @@ export async function sendWelcomeEmail(input: SendWelcomeInput) {
 }
 
 interface SendAdminNotificationInput {
-  type: "new_registration" | "payment_received";
+  type: "new_registration" | "payment_received" | "quote_requested";
   eventName: string;
   participantName: string;
   reference: string;
   amount?: number;
+  /** Demande de conciergerie : detail des prestations et du sejour. */
+  services?: string[];
+  sejour?: string;
 }
 
 export async function sendAdminNotificationEmail(input: SendAdminNotificationInput) {
@@ -380,13 +383,21 @@ export async function sendAdminNotificationEmail(input: SendAdminNotificationInp
 
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || "admin@aiko.com";
   const isPayment = input.type === "payment_received";
+  const isQuote = input.type === "quote_requested";
 
-  const subject = isPayment
-    ? `Paiement recu — ${input.eventName} (${new Intl.NumberFormat("fr-FR").format(input.amount || 0)} XOF)`
-    : `Nouvelle inscription — ${input.eventName}`;
+  const montant = new Intl.NumberFormat("fr-FR").format(input.amount || 0);
+  const subject = isQuote
+    ? `Demande de conciergerie — ${input.participantName} (${montant} XOF a chiffrer)`
+    : isPayment
+      ? `Paiement recu — ${input.eventName} (${montant} XOF)`
+      : `Nouvelle inscription — ${input.eventName}`;
 
-  const title = isPayment ? "Paiement recu" : "Nouvelle inscription";
-  const badge = isPayment ? "Paiement" : "Inscription";
+  const title = isQuote
+    ? "Demande de conciergerie"
+    : isPayment
+      ? "Paiement recu"
+      : "Nouvelle inscription";
+  const badge = isQuote ? "Conciergerie" : isPayment ? "Paiement" : "Inscription";
 
   const html = `
 <!DOCTYPE html>
@@ -421,13 +432,28 @@ export async function sendAdminNotificationEmail(input: SendAdminNotificationInp
             <td style="padding:4px 0;color:#8A8680">Reference</td>
             <td style="padding:4px 0;font-family:monospace;color:#C8A951;font-weight:600">${esc(input.reference)}</td>
           </tr>
+          ${input.sejour ? `
+          <tr>
+            <td style="padding:4px 0;color:#8A8680">Sejour</td>
+            <td style="padding:4px 0">${esc(input.sejour)}</td>
+          </tr>` : ""}
+          ${input.services?.length ? `
+          <tr>
+            <td style="padding:4px 0;color:#8A8680;vertical-align:top">Prestations</td>
+            <td style="padding:4px 0">${input.services.map((s) => esc(s)).join("<br>")}</td>
+          </tr>` : ""}
           ${input.amount && input.amount > 0 ? `
           <tr>
-            <td style="padding:4px 0;color:#8A8680">Montant</td>
-            <td style="padding:4px 0;font-weight:700;font-size:16px">${new Intl.NumberFormat("fr-FR").format(input.amount)} XOF</td>
+            <td style="padding:4px 0;color:#8A8680">${isQuote ? "Estimation" : "Montant"}</td>
+            <td style="padding:4px 0;font-weight:700;font-size:16px">${montant} XOF</td>
           </tr>` : ""}
         </table>
       </div>
+      ${isQuote ? `
+      <p style="font-size:13px;color:#5A5750;margin:0;line-height:1.6">
+        Les quantites sont une estimation calculee sur les dates declarees.
+        A ajuster et chiffrer dans le back-office avant d'envoyer le lien de paiement.
+      </p>` : ""}
     </div>
     <div style="background:#0A0A0A;border-radius:0 0 16px 16px;padding:20px 32px;text-align:center">
       <p style="font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:rgba(255,255,255,0.3);margin:0">

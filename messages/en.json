@@ -672,7 +672,8 @@
     "services_arrival": "Arrival",
     "services_departure": "Departure",
     "services_people": "People",
-    "services_quote": "Your concierge request has been received. You will get a quote shortly."
+    "services_quote": "Your concierge request has been received. You will get a quote shortly.",
+    "services_nationality": "Nationality"
   },
   "residence": {
     "title": "Available residences",

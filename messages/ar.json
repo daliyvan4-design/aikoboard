@@ -672,7 +672,8 @@
     "services_arrival": "الوصول",
     "services_departure": "المغادرة",
     "services_people": "عدد الأشخاص",
-    "services_quote": "تم استلام طلب الكونسيرج. ستصلك التسعيرة قريبًا."
+    "services_quote": "تم استلام طلب الكونسيرج. ستصلك التسعيرة قريبًا.",
+    "services_nationality": "الجنسية"
   },
   "residence": {
     "title": "الإقامات المتاحة",

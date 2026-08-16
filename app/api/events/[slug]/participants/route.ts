@@ -10,6 +10,7 @@ import { expectedParticipantAmount, defaultParticipantType } from "@/lib/pricing
 import { assertEventAccess } from "@/lib/event-access";
 import { intersectWithPack } from "@/lib/event-services";
 import { createQuoteFromRegistration } from "@/lib/event-quote";
+import { isKnownCountry } from "@/lib/countries";
 import { log } from "@/lib/logger";
 
 /** Statuts qui occupent une place dans la jauge de capacité. */
@@ -72,6 +73,7 @@ export async function POST(
     const sejourArrivee = raw.dateArrivee ? new Date(raw.dateArrivee) : event.dateDebut;
     const sejourDepart = raw.dateDepart ? new Date(raw.dateDepart) : event.dateFin;
     const nombrePersonnes = Math.max(1, Math.min(20, parseInt(raw.nombrePersonnes) || 1));
+    const nationalite = isKnownCountry(raw.nationalite) ? raw.nationalite : "";
 
     const type = body.type ?? defaultParticipantType(event.type);
     // Le montant et le statut viennent du tarif de l'événement, jamais du client.
@@ -185,6 +187,8 @@ export async function POST(
         dateArrivee: isNaN(sejourArrivee.getTime()) ? event.dateDebut : sejourArrivee,
         dateDepart: isNaN(sejourDepart.getTime()) ? event.dateFin : sejourDepart,
         nombrePersonnes,
+        nationalite,
+        eventName: event.nom,
       });
     }
 

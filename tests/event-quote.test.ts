@@ -95,3 +95,21 @@ describe("devis de conciergerie", () => {
     ).resolves.toBeNull();
   });
 });
+
+describe("nationalité", () => {
+  it("reconnaît un code pays valide et rejette le reste", async () => {
+    const { isKnownCountry, countryName } = await import("@/lib/countries");
+
+    expect(isKnownCountry("CI")).toBe(true);
+    expect(isKnownCountry("ZZ")).toBe(false);
+    expect(isKnownCountry(42)).toBe(false);
+    expect(countryName("SN")).toBe("Sénégal");
+  });
+
+  it("place les pays de la zone en tête de liste", async () => {
+    const { COUNTRIES_PRIORITY, COUNTRIES } = await import("@/lib/countries");
+
+    expect(COUNTRIES_PRIORITY[0].code).toBe("CI");
+    expect(COUNTRIES.length).toBeGreaterThan(150);
+  });
+});

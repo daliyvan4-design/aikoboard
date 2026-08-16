@@ -1,6 +1,8 @@
 import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
 import { log } from "./logger";
+import { sendAdminNotificationEmail } from "./email";
+import { countryName } from "./countries";
 
 /**
  * Devis de conciergerie ne d'une inscription a un evenement.
@@ -26,7 +28,11 @@ export interface QuoteInput {
   dateArrivee: Date;
   dateDepart: Date;
   nombrePersonnes: number;
+  /** Code pays ISO, vide si le participant ne l'a pas renseigne. */
+  nationalite?: string;
   langue?: string;
+  /** Nom de l'evenement, pour la notification interne. */
+  eventName?: string;
 }
 
 function generateReference(): string {
@@ -105,8 +111,7 @@ export async function createQuoteFromRegistration(
         nom: input.nom,
         email: input.email,
         telephone: input.telephone,
-        // Renseignee par l'equipe : l'inscription a un evenement ne la demande pas
-        nationalite: "",
+        nationalite: input.nationalite ?? "",
         dateArrivee: input.dateArrivee,
         dateDepart: input.dateDepart,
         nombrePersonnes: people,
@@ -121,6 +126,20 @@ export async function createQuoteFromRegistration(
       ref: commande.reference,
       services: lignes.length,
     });
+
+    // L'equipe doit savoir qu'un devis attend, sans surveiller le back-office
+    const sejour = `${input.dateArrivee.toLocaleDateString("fr-FR")} au ${input.dateDepart.toLocaleDateString("fr-FR")} · ${people} pers.${
+      input.nationalite ? ` · ${countryName(input.nationalite)}` : ""
+    }`;
+    sendAdminNotificationEmail({
+      type: "quote_requested",
+      eventName: input.eventName ?? "Evenement",
+      participantName: `${input.prenom} ${input.nom}`,
+      reference: commande.reference,
+      amount: montantTotal,
+      sejour,
+      services: services.map((s, i) => `${s.nom} — ${lignes[i].quantite} x ${new Intl.NumberFormat("fr-FR").format(lignes[i].prixUnitaire)} XOF`),
+    }).catch(() => {});
 
     return commande;
   } catch (err) {
