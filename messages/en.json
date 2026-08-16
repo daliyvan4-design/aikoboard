@@ -664,7 +664,8 @@
       "csv": "CSV",
       "no_participants": "No participants yet",
       "no_results": "No results"
-    }
+    },
+    "get_qr": "Get my QR code"
   },
   "residence": {
     "title": "Available residences",

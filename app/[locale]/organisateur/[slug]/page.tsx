@@ -205,7 +205,7 @@ function OrganisateurDashboardContent() {
               className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-6 py-3.5 text-[14px] font-semibold"
             >
               <ScanLine className="w-5 h-5" />
-              Scanner &amp; imprimer badges
+              Scanner &amp; imprimer les badges
             </Link>
           </div>
         </div>

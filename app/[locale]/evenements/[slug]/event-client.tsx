@@ -694,7 +694,7 @@ export default function EventClient() {
               <div className="md:col-span-2 flex justify-end pt-2">
                 {isFree ? (
                   <button type="submit" className="btn-press inline-flex items-center gap-2 bg-gold hover:bg-gold2 text-ink rounded-full px-8 py-4 text-[15px] font-semibold">
-                    {t("free_btn")} {isConcert ? t("ticket") : t("badge")}
+                    {isConcert ? `${t("free_btn")} ${t("ticket")}` : t("get_qr")}
                   </button>
                 ) : (
                   <PaymentButton

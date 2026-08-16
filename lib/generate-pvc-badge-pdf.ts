@@ -102,15 +102,19 @@ function drawRecto(
   const evLines = doc.splitTextToSize(data.eventName, CARD_W - pad * 2 - logoOffset - (isConference ? 18 : 0));
   doc.text(evLines.slice(0, 2), x + pad + logoOffset, yc + 3);
 
-  // Badge type label (VIP / DELEGATE / SPEAKER etc.)
-  const badgeLabel = (p.badgeType || "DELEGATE").toUpperCase();
-  const labelW = doc.getStringUnitWidth(badgeLabel) * 5 / doc.internal.scaleFactor + 4;
-  doc.setFillColor(...GOLD);
-  doc.roundedRect(x + CARD_W - pad - labelW, yc, labelW, 5.5, 1, 1, "F");
-  doc.setTextColor(...NAVY);
-  doc.setFontSize(5);
-  doc.setFont("helvetica", "bold");
-  doc.text(badgeLabel, x + CARD_W - pad - labelW / 2, yc + 3.8, { align: "center" });
+  // Pastille de categorie (VIP, SPEAKER, PRESSE...) : affichee seulement si
+  // l'evenement en definit une. Auparavant elle retombait sur "DELEGATE",
+  // imprime sur tous les badges sans que personne ne l'ait demande.
+  const badgeLabel = p.badgeType?.trim().toUpperCase();
+  if (badgeLabel) {
+    const labelW = doc.getStringUnitWidth(badgeLabel) * 5 / doc.internal.scaleFactor + 4;
+    doc.setFillColor(...GOLD);
+    doc.roundedRect(x + CARD_W - pad - labelW, yc, labelW, 5.5, 1, 1, "F");
+    doc.setTextColor(...NAVY);
+    doc.setFontSize(5);
+    doc.setFont("helvetica", "bold");
+    doc.text(badgeLabel, x + CARD_W - pad - labelW / 2, yc + 3.8, { align: "center" });
+  }
 
   // Thin separator
   yc = y + 11;

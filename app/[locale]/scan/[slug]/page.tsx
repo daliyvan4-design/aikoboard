@@ -487,7 +487,7 @@ function ScanPageContent() {
                 ) : (
                   <Printer className="w-4 h-4" />
                 )}
-                {printing ? "Generation du badge..." : "Imprimer badge PVC"}
+                {printing ? "Génération du badge..." : "Imprimer le badge"}
               </button>
             )}
 

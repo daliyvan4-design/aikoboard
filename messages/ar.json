@@ -664,7 +664,8 @@
       "csv": "CSV",
       "no_participants": "لا يوجد مشاركون حتى الآن",
       "no_results": "لا توجد نتائج"
-    }
+    },
+    "get_qr": "احصل على رمز QR"
   },
   "residence": {
     "title": "الإقامات المتاحة",
