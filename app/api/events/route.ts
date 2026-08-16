@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { log } from "@/lib/logger";
 import { EVENT_CREATION_PRICE_XOF } from "@/lib/pricing";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { sanitizeServiceIds } from "@/lib/event-services";
 
 /** Clé privée d'accès au tableau de bord organisateur. */
 function generateManageToken(): string {
@@ -50,6 +51,9 @@ export async function POST(req: NextRequest) {
     const prixBadge = Math.max(0, parseFloat(body.prixBadge) || 0);
     const prixTicket = Math.max(0, parseFloat(body.prixTicket) || 0);
 
+    // Pack de conciergerie : seuls les services actifs du catalogue sont retenus
+    const serviceIds = await sanitizeServiceIds(body.serviceIds);
+
     const base = slugify(body.nom);
     const slug = await uniqueSlug(base);
 
@@ -72,6 +76,7 @@ export async function POST(req: NextRequest) {
         offreLogement: body.offreLogement === true,
         offreVehicule: body.offreVehicule === true,
         offreExtras: body.offreExtras === true,
+        serviceIds,
         institutionnel: body.institutionnel === true,
         residenceId: typeof body.residenceId === "string" ? body.residenceId : null,
         contactEmail: body.contactEmail.trim().substring(0, 200),

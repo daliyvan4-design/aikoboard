@@ -190,6 +190,9 @@ model Event {
   offreLogement   Boolean       @default(false)
   offreVehicule   Boolean       @default(false)
   offreExtras     Boolean       @default(false)
+  // Services du catalogue inclus dans le pack de l evenement : ce sont
+  // les seuls que le participant pourra demander.
+  serviceIds      String[]      @default([])
   institutionnel  Boolean       @default(false)
   residenceId     String?
   residence       Residence?    @relation(fields: [residenceId], references: [id])
@@ -278,6 +281,8 @@ model Participant {
   paymentRef    String?
   montant       Float    @default(0)
   residenceTarifId String?
+  // Services demandes par le participant, choisis parmi ceux du pack.
+  serviceIds    String[] @default([])
   checkedIn     Boolean  @default(false)
   checkedInAt   DateTime?
   createdAt     DateTime @default(now())

@@ -665,7 +665,9 @@
       "no_participants": "Aucun participant pour le moment",
       "no_results": "Aucun résultat"
     },
-    "get_qr": "Obtenir mon QR code"
+    "get_qr": "Obtenir mon QR code",
+    "services_lead": "Cochez ce dont vous avez besoin. L’organisateur vous recontactera pour confirmer et chiffrer.",
+    "services_title": "Services de conciergerie"
   },
   "residence": {
     "title": "Résidences disponibles",

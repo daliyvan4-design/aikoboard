@@ -37,6 +37,7 @@ interface Participant {
   montant: number;
   checkedIn: boolean;
   createdAt: string;
+  serviceIds?: string[];
 }
 
 interface EventData {
@@ -57,6 +58,7 @@ interface EventData {
   prixTicket: number;
   statut: string;
   checkedInCount: number;
+  services?: { id: string; nom: string }[];
   _count: { participants: number };
 }
 
@@ -142,6 +144,9 @@ function OrganisateurDashboardContent() {
     ? event.checkedInCount
     : participants.filter((p) => p.checkedIn).length;
   const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenements/${event.slug}`;
+
+  const serviceName = (id: string) =>
+    event.services?.find((s) => s.id === id)?.nom ?? id;
 
   const filtered = participants.filter((p) => {
     if (!search) return true;
@@ -352,7 +357,7 @@ function OrganisateurDashboardContent() {
                 onClick={() => {
                   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
                   const sep = ";";
-                  const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Check-in", "Date inscription"].join(sep);
+                  const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Services demandes", "Check-in", "Date inscription"].join(sep);
                   const rows = participants.map((p) =>
                     [
                       String(p.ticketNumber).padStart(4, "0"),
@@ -364,6 +369,7 @@ function OrganisateurDashboardContent() {
                       esc(p.organisation ?? ""),
                       p.type,
                       String(p.montant),
+                      esc((p.serviceIds ?? []).map((id) => serviceName(id)).join(" + ")),
                       p.checkedIn ? "Oui" : "Non",
                       new Date(p.createdAt).toLocaleDateString("fr-FR"),
                     ].join(sep)
@@ -413,7 +419,14 @@ function OrganisateurDashboardContent() {
                     <tr key={p.id} className="border-t border-line hover:bg-cream2/50">
                       <td className="px-6 py-3 font-mono font-semibold">{String(p.ticketNumber).padStart(4, "0")}</td>
                       <td className="px-4 py-3 font-mono text-gold text-[12px]">{p.reference}</td>
-                      <td className="px-4 py-3 font-medium">{p.prenom} {p.nom}</td>
+                      <td className="px-4 py-3 font-medium">
+                        {p.prenom} {p.nom}
+                        {(p.serviceIds?.length ?? 0) > 0 && (
+                          <span className="block text-[11px] text-gold font-normal mt-0.5">
+                            {p.serviceIds!.map(serviceName).join(" · ")}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-mute">{p.email}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full ${p.type === "ticket" ? "bg-gold/10 text-gold" : "bg-ink/5 text-ink"}`}>

@@ -25,6 +25,7 @@ import type { LucideIcon } from "lucide-react";
 import { PaymentButton } from "@/components/payment/payment-button";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { storeManageToken } from "@/lib/manage-token";
+import { ServicePicker } from "@/components/services/service-picker";
 
 type EventType = "conference" | "concert" | "salon" | "hackathon";
 
@@ -44,6 +45,7 @@ interface EventForm {
   offreLogement: boolean;
   offreVehicule: boolean;
   offreExtras: boolean;
+  serviceIds: string[];
   institutionnel: boolean;
   residenceId: string;
   contactEmail: string;
@@ -87,6 +89,7 @@ export default function CreerPage() {
     offreLogement: false,
     offreVehicule: false,
     offreExtras: false,
+    serviceIds: [],
     institutionnel: false,
     residenceId: "",
     contactEmail: "",
@@ -135,6 +138,7 @@ export default function CreerPage() {
           offreLogement: form.offreLogement,
           offreVehicule: form.offreVehicule,
           offreExtras: form.offreExtras,
+          serviceIds: form.serviceIds,
           institutionnel: form.institutionnel,
           residenceId: form.residenceId || undefined,
           contactEmail: form.contactEmail,
@@ -559,6 +563,21 @@ export default function CreerPage() {
                   </div>
                 </label>
               </div>
+            </div>
+
+            <div>
+              <p className="text-[12px] font-medium text-ink mb-1 uppercase tracking-wider">
+                Conciergerie {"&"} services suppl{"é"}mentaires
+              </p>
+              <p className="text-[12px] text-mute mb-4">
+                Cochez ce que votre pack inclut. Vos participants pourront
+                ensuite demander ces prestations au moment de leur inscription.
+              </p>
+              <ServicePicker
+                catalog
+                selected={form.serviceIds}
+                onChange={(serviceIds) => update({ serviceIds })}
+              />
             </div>
 
             {form.offreLogement && residences.length > 0 && (

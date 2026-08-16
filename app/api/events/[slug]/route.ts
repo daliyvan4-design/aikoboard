@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveEventSlug } from "@/lib/slug";
+import { loadServices } from "@/lib/event-services";
 import { log } from "@/lib/logger";
 
 /**
@@ -50,6 +51,7 @@ export async function GET(
         offreVehicule: true,
         offreExtras: true,
         institutionnel: true,
+        serviceIds: true,
         statut: true,
         createdAt: true,
         _count: { select: { participants: true } },
@@ -70,9 +72,13 @@ export async function GET(
       where: { eventId: event.id, checkedIn: true },
     });
 
+    // Detail des services du pack, pour que le participant sache ce qu il
+    // peut demander et a quel tarif indicatif.
+    const services = await loadServices(event.serviceIds);
+
     return NextResponse.json({
       success: true,
-      data: { ...event, checkedInCount, canonicalSlug: event.slug },
+      data: { ...event, checkedInCount, canonicalSlug: event.slug, services },
     });
   } catch (err) {
     log.error("Lecture evenement impossible", { route: "GET /api/events/[slug]" }, err);

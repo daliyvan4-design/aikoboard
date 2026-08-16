@@ -8,6 +8,7 @@ import { participantSchema, checkDataUriImage } from "@/lib/validation";
 import { uploadBase64Image } from "@/lib/cloudinary";
 import { expectedParticipantAmount, defaultParticipantType } from "@/lib/pricing";
 import { assertEventAccess } from "@/lib/event-access";
+import { intersectWithPack } from "@/lib/event-services";
 import { log } from "@/lib/logger";
 
 /** Statuts qui occupent une place dans la jauge de capacité. */
@@ -63,6 +64,9 @@ export async function POST(
     // Normalise l'adresse : sans cela "Bob@x.com" et "bob@x.com" seraient
     // deux inscriptions differentes pour la contrainte d'unicite.
     const email = body.email.trim().toLowerCase();
+
+    // Services demandes : uniquement ceux que l evenement propose
+    const serviceIds = intersectWithPack(raw.serviceIds, event.serviceIds);
 
     const type = body.type ?? defaultParticipantType(event.type);
     // Le montant et le statut viennent du tarif de l'événement, jamais du client.
@@ -121,6 +125,7 @@ export async function POST(
               statut,
               montant,
               residenceTarifId: body.residenceTarifId ?? null,
+              serviceIds,
             },
             select: { reference: true, ticketNumber: true, type: true },
           });
@@ -190,6 +195,7 @@ export async function POST(
         type: participant.type,
         montant,
         statut,
+        serviceIds,
       },
     });
   } catch (err) {

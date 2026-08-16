@@ -1,5 +1,7 @@
 "use client";
 
+import { ServicePicker, type PickerService } from "@/components/services/service-picker";
+
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -68,6 +70,7 @@ interface EventData {
   offreLogement?: boolean;
   offreVehicule?: boolean;
   offreExtras?: boolean;
+  services?: PickerService[];
   residence?: ResidenceData | null;
   _count: { participants: number };
 }
@@ -107,6 +110,7 @@ export default function EventClient() {
   const [ticketNum, setTicketNum] = useState(0);
   const [payError, setPayError] = useState("");
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
 
   const displayRef = ref;
@@ -177,6 +181,7 @@ export default function EventClient() {
           type: isConcert ? "ticket" : "badge",
           montant: 0,
           residenceTarifId: selectedTarifId,
+          serviceIds: selectedServices,
         }),
       });
       const data = await res.json();
@@ -225,6 +230,7 @@ export default function EventClient() {
           photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
           residenceTarifId: selectedTarifId,
+          serviceIds: selectedServices,
         }),
       });
       const data = await res.json();
@@ -652,6 +658,20 @@ export default function EventClient() {
                       {t("room_booked")} : <strong>{selectedTarif.label}</strong> — {new Intl.NumberFormat("fr-FR").format(selectedTarif.prixParNuit)} {selectedTarif.devise}{t("per_night")}
                     </div>
                   )}
+                </div>
+              )}
+
+              {event.services && event.services.length > 0 && (
+                <div className="md:col-span-2 border-t border-line pt-6">
+                  <p className="text-[14px] text-ink font-medium mb-1">
+                    {t("services_title")}
+                  </p>
+                  <p className="text-[12px] text-mute mb-4">{t("services_lead")}</p>
+                  <ServicePicker
+                    services={event.services}
+                    selected={selectedServices}
+                    onChange={setSelectedServices}
+                  />
                 </div>
               )}
 

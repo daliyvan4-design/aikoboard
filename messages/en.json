@@ -665,7 +665,9 @@
       "no_participants": "No participants yet",
       "no_results": "No results"
     },
-    "get_qr": "Get my QR code"
+    "get_qr": "Get my QR code",
+    "services_title": "Concierge services",
+    "services_lead": "Tick what you need. The organiser will get back to you to confirm and quote."
   },
   "residence": {
     "title": "Available residences",
