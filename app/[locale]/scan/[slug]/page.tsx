@@ -266,9 +266,9 @@ function ScanPageContent() {
       html5QrRef.current = scanner;
 
       await scanner.start(
-        // Camera arriere si elle existe, sans exiger : sur un appareil qui
-        // n'en a pas, "exact" ferait echouer le demarrage.
-        { facingMode: { ideal: "environment" } } as MediaTrackConstraints,
+        // html5-qrcode n'accepte ici qu'une chaine ou { exact } : lui passer
+        // { ideal } fait echouer le demarrage de la camera.
+        { facingMode: "environment" },
         {
           fps: 10,
           // Zone d'analyse calculee a partir du viseur reel plutot que
