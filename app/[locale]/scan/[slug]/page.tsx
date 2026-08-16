@@ -75,6 +75,7 @@ function ScanPageContent() {
   const [scanCount, setScanCount] = useState(0);
   const [totalCheckedIn, setTotalCheckedIn] = useState(0);
   const [cameraError, setCameraError] = useState("");
+  const [streamInfo, setStreamInfo] = useState("");
   const [printing, setPrinting] = useState(false);
   const [manualRef, setManualRef] = useState("");
   const [manualLoading, setManualLoading] = useState(false);
@@ -256,16 +257,18 @@ function ScanPageContent() {
 
     try {
       const { Html5Qrcode } = await import("html5-qrcode");
-      // Decodeur natif du navigateur quand il existe : nettement plus
-      // fiable que le decodage logiciel sur telephone.
-      const scanner = new Html5Qrcode("qr-reader", {
-        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-        verbose: false,
-      });
+      // Decodeur logiciel de la bibliotheque, volontairement.
+      // Le decodeur natif du navigateur (BarcodeDetector) accelere Android
+      // et Chrome, mais l'implementation de Safari 17 renvoie des resultats
+      // vides sur le canvas que lui passe html5-qrcode : le scan marchait
+      // sur ordinateur et jamais sur iPhone.
+      const scanner = new Html5Qrcode("qr-reader", { verbose: false });
       html5QrRef.current = scanner;
 
       await scanner.start(
-        { facingMode: "environment" },
+        // Camera arriere si elle existe, sans exiger : sur un appareil qui
+        // n'en a pas, "exact" ferait echouer le demarrage.
+        { facingMode: { ideal: "environment" } } as MediaTrackConstraints,
         {
           fps: 10,
           // Zone d'analyse calculee a partir du viseur reel plutot que
@@ -292,6 +295,13 @@ function ScanPageContent() {
       );
 
       setScanning(true);
+
+      // Resolution reellement obtenue : permet de diagnostiquer un echec
+      // sans avoir le telephone en main.
+      setTimeout(() => {
+        const video = document.querySelector<HTMLVideoElement>("#qr-reader video");
+        if (video?.videoWidth) setStreamInfo(`${video.videoWidth}x${video.videoHeight}`);
+      }, 1200);
     } catch (err) {
       setCameraError(
         err instanceof Error
@@ -374,6 +384,12 @@ function ScanPageContent() {
                 <ScanLine className="w-5 h-5" />
                 Demarrer le scan
               </button>
+            </div>
+          )}
+
+          {scanning && streamInfo && (
+            <div className="absolute bottom-2 left-2 bg-black/60 rounded-lg px-2.5 py-1">
+              <p className="text-[10px] text-cream/50 mono">Camera {streamInfo}</p>
             </div>
           )}
 
