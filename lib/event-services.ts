@@ -19,6 +19,13 @@ export interface EventService {
   icon: string | null;
 }
 
+/**
+ * Categories ou un seul service peut etre retenu par participant.
+ * Personne ne dort dans deux hotels a la fois — et l'interface a beau
+ * proposer un bouton radio, une requete forgee contournerait la regle.
+ */
+export const EXCLUSIVE_CATEGORIES = ["hebergement"];
+
 export const SERVICE_CATEGORIES: Record<string, string> = {
   transport: "Transport",
   hebergement: "Hébergement",
@@ -48,6 +55,29 @@ export function intersectWithPack(requested: unknown, pack: string[]): string[] 
   if (!Array.isArray(requested) || pack.length === 0) return [];
   const allowed = new Set(pack);
   return [...new Set(requested.filter((id): id is string => typeof id === "string" && allowed.has(id)))];
+}
+
+/**
+ * Ne conserve qu'un service par categorie exclusive : le premier choisi.
+ * Les autres categories restent cumulables.
+ */
+export async function enforceExclusiveCategories(ids: string[]): Promise<string[]> {
+  if (ids.length < 2) return ids;
+
+  const services = await prisma.service.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, categorie: true },
+  });
+  const categorieParId = new Map(services.map((s) => [s.id, s.categorie]));
+
+  const dejaPris = new Set<string>();
+  return ids.filter((id) => {
+    const categorie = categorieParId.get(id);
+    if (!categorie || !EXCLUSIVE_CATEGORIES.includes(categorie)) return true;
+    if (dejaPris.has(categorie)) return false;
+    dejaPris.add(categorie);
+    return true;
+  });
 }
 
 /** Détail des services d'un pack, dans l'ordre d'affichage du catalogue. */

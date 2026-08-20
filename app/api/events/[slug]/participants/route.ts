@@ -8,7 +8,7 @@ import { participantSchema, checkDataUriImage } from "@/lib/validation";
 import { uploadBase64Image } from "@/lib/cloudinary";
 import { expectedParticipantAmount, defaultParticipantType } from "@/lib/pricing";
 import { assertEventAccess } from "@/lib/event-access";
-import { intersectWithPack } from "@/lib/event-services";
+import { intersectWithPack, enforceExclusiveCategories } from "@/lib/event-services";
 import { createQuoteFromRegistration } from "@/lib/event-quote";
 import { isKnownCountry } from "@/lib/countries";
 import { log } from "@/lib/logger";
@@ -68,7 +68,9 @@ export async function POST(
     const email = body.email.trim().toLowerCase();
 
     // Services demandes : uniquement ceux que l evenement propose
-    const serviceIds = intersectWithPack(raw.serviceIds, event.serviceIds);
+    const serviceIds = await enforceExclusiveCategories(
+      intersectWithPack(raw.serviceIds, event.serviceIds),
+    );
 
     const sejourArrivee = raw.dateArrivee ? new Date(raw.dateArrivee) : event.dateDebut;
     const sejourDepart = raw.dateDepart ? new Date(raw.dateDepart) : event.dateFin;

@@ -80,3 +80,39 @@ describe("services de conciergerie", () => {
     ]);
   });
 });
+
+describe("hebergement exclusif", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("ne garde qu un seul hebergement, le premier choisi", async () => {
+    prismaMock.service.findMany.mockResolvedValue([
+      { id: "h1", categorie: "hebergement" },
+      { id: "h2", categorie: "hebergement" },
+      { id: "t1", categorie: "transport" },
+    ]);
+    const { enforceExclusiveCategories } = await import("@/lib/event-services");
+
+    // Deux hotels coches : le second saute, le transport reste
+    expect(await enforceExclusiveCategories(["h1", "t1", "h2"])).toEqual(["h1", "t1"]);
+  });
+
+  it("laisse cumuler les categories non exclusives", async () => {
+    prismaMock.service.findMany.mockResolvedValue([
+      { id: "e1", categorie: "extras" },
+      { id: "e2", categorie: "extras" },
+      { id: "r1", categorie: "repas" },
+    ]);
+    const { enforceExclusiveCategories } = await import("@/lib/event-services");
+
+    expect(await enforceExclusiveCategories(["e1", "e2", "r1"])).toEqual(["e1", "e2", "r1"]);
+  });
+
+  it("ne touche pas la base pour un seul service", async () => {
+    const { enforceExclusiveCategories } = await import("@/lib/event-services");
+
+    expect(await enforceExclusiveCategories(["h1"])).toEqual(["h1"]);
+    expect(prismaMock.service.findMany).not.toHaveBeenCalled();
+  });
+});

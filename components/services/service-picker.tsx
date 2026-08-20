@@ -44,6 +44,12 @@ interface Props {
   /** Affiche le prix indicatif a cote de chaque service */
   showPrices?: boolean;
   emptyLabel?: string;
+  /**
+   * Categories ou un seul service peut etre retenu. Personne ne dort dans
+   * deux hotels a la fois : cocher un hebergement remplace le precedent.
+   * Ne s'applique pas cote organisateur, qui en propose plusieurs.
+   */
+  exclusiveCategories?: string[];
 }
 
 export function ServicePicker({
@@ -53,6 +59,7 @@ export function ServicePicker({
   onChange,
   showPrices = true,
   emptyLabel = "Aucun service disponible",
+  exclusiveCategories = [],
 }: Props) {
   const [fetched, setFetched] = useState<PickerService[]>([]);
   const [loading, setLoading] = useState(catalog);
@@ -79,8 +86,24 @@ export function ServicePicker({
     };
   }, [catalog]);
 
-  const toggle = (id: string) => {
-    onChange(selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id]);
+  const toggle = (service: PickerService) => {
+    const { id, categorie } = service;
+
+    if (selected.includes(id)) {
+      onChange(selected.filter((s) => s !== id));
+      return;
+    }
+
+    if (exclusiveCategories.includes(categorie)) {
+      // On retire les autres choix de la meme categorie avant d'ajouter
+      const concurrents = new Set(
+        loaded.filter((s) => s.categorie === categorie).map((s) => s.id),
+      );
+      onChange([...selected.filter((s) => !concurrents.has(s)), id]);
+      return;
+    }
+
+    onChange([...selected, id]);
   };
 
   if (loading) {
@@ -107,10 +130,14 @@ export function ServicePicker({
         <div key={categorie}>
           <p className="text-[11px] uppercase tracking-wider text-mute mb-2">
             {CATEGORY_LABELS[categorie] ?? categorie}
+            {exclusiveCategories.includes(categorie) && (
+              <span className="normal-case tracking-normal text-mute/60"> · un seul choix</span>
+            )}
           </p>
           <div className="grid sm:grid-cols-2 gap-2">
             {list.map((s) => {
               const active = selected.includes(s.id);
+              const exclusive = exclusiveCategories.includes(categorie);
               return (
                 <label
                   key={s.id}
@@ -119,9 +146,13 @@ export function ServicePicker({
                   }`}
                 >
                   <input
-                    type="checkbox"
+                    type={exclusive ? "radio" : "checkbox"}
+                    name={exclusive ? `service-${categorie}` : undefined}
                     checked={active}
-                    onChange={() => toggle(s.id)}
+                    // Un radio deja coche ne declenche pas onChange : le clic
+                    // sert aussi a le decocher, pour ne rien demander du tout.
+                    onChange={() => toggle(s)}
+                    onClick={() => { if (exclusive && active) toggle(s); }}
                     className="accent-gold w-4 h-4 mt-0.5 shrink-0"
                   />
                   <span className="min-w-0">
