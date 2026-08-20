@@ -113,6 +113,16 @@ export default function EventClient() {
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [wantsServices, setWantsServices] = useState(false);
+  const [voyage, setVoyage] = useState({
+    typeParticipant: "local" as "local" | "international",
+    passeport: "",
+    paysDepart: "",
+    numeroVol: "",
+    planVol: "",
+    aVisa: "",
+    dateArrivee: "",
+    dateRetour: "",
+  });
   const [sejour, setSejour] = useState({
     dateArrivee: "",
     dateDepart: "",
@@ -190,6 +200,16 @@ export default function EventClient() {
           montant: 0,
           residenceTarifId: selectedTarifId,
           serviceIds: wantsServices ? selectedServices : [],
+          typeParticipant: voyage.typeParticipant,
+          ...(voyage.typeParticipant === "international" && {
+            passeport: voyage.passeport,
+            paysDepart: voyage.paysDepart,
+            numeroVol: voyage.numeroVol,
+            planVol: voyage.planVol,
+            aVisa: voyage.aVisa === "" ? undefined : voyage.aVisa === "oui",
+            dateArrivee: voyage.dateArrivee || undefined,
+            dateRetour: voyage.dateRetour || undefined,
+          }),
           dateArrivee: sejour.dateArrivee || undefined,
           dateDepart: sejour.dateDepart || undefined,
           nombrePersonnes: sejour.nombrePersonnes,
@@ -243,6 +263,16 @@ export default function EventClient() {
           type: isConcert ? "ticket" : "badge",
           residenceTarifId: selectedTarifId,
           serviceIds: wantsServices ? selectedServices : [],
+          typeParticipant: voyage.typeParticipant,
+          ...(voyage.typeParticipant === "international" && {
+            passeport: voyage.passeport,
+            paysDepart: voyage.paysDepart,
+            numeroVol: voyage.numeroVol,
+            planVol: voyage.planVol,
+            aVisa: voyage.aVisa === "" ? undefined : voyage.aVisa === "oui",
+            dateArrivee: voyage.dateArrivee || undefined,
+            dateRetour: voyage.dateRetour || undefined,
+          }),
           dateArrivee: sejour.dateArrivee || undefined,
           dateDepart: sejour.dateDepart || undefined,
           nombrePersonnes: sejour.nombrePersonnes,
@@ -556,6 +586,33 @@ export default function EventClient() {
             </p>
 
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+              <div className="md:col-span-2">
+                <label className="block text-[12px] font-medium text-ink mb-3 uppercase tracking-wider">
+                  {t("participant_type")}
+                </label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {(["local", "international"] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setVoyage({ ...voyage, typeParticipant: type })}
+                      className={`flex-1 min-w-0 rounded-xl border px-5 py-3.5 text-left transition-all ${
+                        voyage.typeParticipant === type
+                          ? "border-gold bg-gold/10"
+                          : "border-line bg-cream2 hover:border-gold/40"
+                      }`}
+                    >
+                      <span className="block text-[15px] text-ink font-medium">
+                        {type === "local" ? t("participant_local") : t("participant_international")}
+                      </span>
+                      <span className="block text-[11px] text-mute mt-0.5">
+                        {type === "local" ? t("participant_local_hint") : t("participant_international_hint")}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[12px] font-medium text-ink mb-2 uppercase tracking-wider">{t("first_name")}</label>
                 <input required value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })} placeholder="Amadou" className="w-full bg-cream2 border border-line rounded-xl px-4 py-3.5 text-[15px]" />
@@ -674,6 +731,118 @@ export default function EventClient() {
                       {t("room_booked")} : <strong>{selectedTarif.label}</strong> — {new Intl.NumberFormat("fr-FR").format(selectedTarif.prixParNuit)} {selectedTarif.devise}{t("per_night")}
                     </div>
                   )}
+                </div>
+              )}
+
+              {voyage.typeParticipant === "international" && (
+                <div className="md:col-span-2 border-t border-line pt-6 animate-fade-up">
+                  <p className="text-[14px] text-ink font-medium mb-1">{t("travel_title")}</p>
+                  <p className="text-[12px] text-mute mb-4">{t("travel_lead")}</p>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_passport")}
+                      </label>
+                      <input
+                        value={voyage.passeport}
+                        onChange={(e) => setVoyage({ ...voyage, passeport: e.target.value })}
+                        placeholder="19AB12345"
+                        className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px] mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_country")}
+                      </label>
+                      <select
+                        value={voyage.paysDepart}
+                        onChange={(e) => setVoyage({ ...voyage, paysDepart: e.target.value })}
+                        className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px]"
+                      >
+                        <option value="">—</option>
+                        {COUNTRIES_PRIORITY.map((c) => (
+                          <option key={c.code} value={c.code}>{c.nom}</option>
+                        ))}
+                        <option disabled>──────────</option>
+                        {COUNTRIES_OTHER.map((c) => (
+                          <option key={c.code} value={c.code}>{c.nom}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_flight")}
+                      </label>
+                      <input
+                        value={voyage.numeroVol}
+                        onChange={(e) => setVoyage({ ...voyage, numeroVol: e.target.value })}
+                        placeholder="AF 703"
+                        className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px] mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_visa")}
+                      </label>
+                      <div className="flex gap-2">
+                        {(["oui", "non"] as const).map((rep) => (
+                          <button
+                            key={rep}
+                            type="button"
+                            onClick={() => setVoyage({ ...voyage, aVisa: rep })}
+                            className={`flex-1 min-w-0 rounded-xl border px-4 py-3 text-[15px] transition-all ${
+                              voyage.aVisa === rep
+                                ? "border-gold bg-gold/10 text-ink"
+                                : "border-line bg-cream2 text-mute hover:border-gold/40"
+                            }`}
+                          >
+                            {rep === "oui" ? t("yes") : t("no")}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_arrival")}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={voyage.dateArrivee}
+                        onChange={(e) => setVoyage({ ...voyage, dateArrivee: e.target.value })}
+                        className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_return")}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={voyage.dateRetour}
+                        onChange={(e) => setVoyage({ ...voyage, dateRetour: e.target.value })}
+                        className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] uppercase tracking-wider text-mute mb-1">
+                        {t("travel_plan")}
+                      </label>
+                      <textarea
+                        value={voyage.planVol}
+                        onChange={(e) => setVoyage({ ...voyage, planVol: e.target.value })}
+                        rows={2}
+                        placeholder={t("travel_plan_hint")}
+                        className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px]"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 

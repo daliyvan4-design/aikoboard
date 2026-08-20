@@ -11,6 +11,7 @@ import { assertEventAccess } from "@/lib/event-access";
 import { intersectWithPack, enforceExclusiveCategories } from "@/lib/event-services";
 import { createQuoteFromRegistration } from "@/lib/event-quote";
 import { isKnownCountry } from "@/lib/countries";
+import { parseTravelInfo } from "@/lib/participant-travel";
 import { log } from "@/lib/logger";
 
 /** Statuts qui occupent une place dans la jauge de capacité. */
@@ -71,6 +72,9 @@ export async function POST(
     const serviceIds = await enforceExclusiveCategories(
       intersectWithPack(raw.serviceIds, event.serviceIds),
     );
+
+    // Voyage : renseigne uniquement pour un participant international
+    const voyage = parseTravelInfo(raw);
 
     const sejourArrivee = raw.dateArrivee ? new Date(raw.dateArrivee) : event.dateDebut;
     const sejourDepart = raw.dateDepart ? new Date(raw.dateDepart) : event.dateFin;
@@ -135,6 +139,7 @@ export async function POST(
               montant,
               residenceTarifId: body.residenceTarifId ?? null,
               serviceIds,
+              ...voyage,
             },
             select: { id: true, reference: true, ticketNumber: true, type: true },
           });
@@ -186,8 +191,8 @@ export async function POST(
         email,
         telephone: body.telephone,
         serviceIds,
-        dateArrivee: isNaN(sejourArrivee.getTime()) ? event.dateDebut : sejourArrivee,
-        dateDepart: isNaN(sejourDepart.getTime()) ? event.dateFin : sejourDepart,
+        dateArrivee: voyage.dateArrivee ?? (isNaN(sejourArrivee.getTime()) ? event.dateDebut : sejourArrivee),
+        dateDepart: voyage.dateRetour ?? (isNaN(sejourDepart.getTime()) ? event.dateFin : sejourDepart),
         nombrePersonnes,
         nationalite,
         eventName: event.nom,
@@ -225,6 +230,7 @@ export async function POST(
         montant,
         statut,
         serviceIds,
+        typeParticipant: voyage.typeParticipant,
         devis: quote?.reference ?? null,
       },
     });

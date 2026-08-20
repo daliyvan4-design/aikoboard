@@ -289,6 +289,18 @@ model Participant {
   residenceTarifId String?
   // Services demandes par le participant, choisis parmi ceux du pack.
   serviceIds    String[] @default([])
+
+  // ── Voyage : renseigne uniquement par les participants internationaux.
+  // Ces informations donnent a l'organisateur la visibilite dont il a
+  // besoin pour l'accueil, le protocole et la logistique d'arrivee.
+  typeParticipant String   @default("local")
+  passeport       String?
+  paysDepart      String?
+  numeroVol       String?
+  planVol         String?
+  aVisa           Boolean?
+  dateArrivee     DateTime?
+  dateRetour      DateTime?
   commandes     Commande[]
   checkedIn     Boolean  @default(false)
   checkedInAt   DateTime?

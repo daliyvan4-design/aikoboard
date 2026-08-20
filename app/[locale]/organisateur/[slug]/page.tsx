@@ -22,6 +22,7 @@ import {
   Lock,
 } from "lucide-react";
 import { loadManageToken, storeManageToken } from "@/lib/manage-token";
+import { countryName } from "@/lib/countries";
 
 interface Participant {
   id: string;
@@ -38,6 +39,14 @@ interface Participant {
   checkedIn: boolean;
   createdAt: string;
   serviceIds?: string[];
+  typeParticipant?: string;
+  passeport?: string | null;
+  paysDepart?: string | null;
+  numeroVol?: string | null;
+  planVol?: string | null;
+  aVisa?: boolean | null;
+  dateArrivee?: string | null;
+  dateRetour?: string | null;
 }
 
 interface EventData {
@@ -145,6 +154,13 @@ function OrganisateurDashboardContent() {
     : participants.filter((p) => p.checkedIn).length;
   const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/evenements/${event.slug}`;
 
+  const heure = (iso?: string | null) =>
+    iso
+      ? new Date(iso).toLocaleString("fr-FR", {
+          day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+        })
+      : "—";
+
   const serviceName = (id: string) =>
     event.services?.find((s) => s.id === id)?.nom ?? id;
 
@@ -178,7 +194,7 @@ function OrganisateurDashboardContent() {
           </h1>
           <p className="text-cream/50 text-[14px] mt-2">{event.organisateur}</p>
 
-          <div className="grid sm:grid-cols-4 gap-6 mt-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-8">
             <div>
               <p className="text-[11px] text-cream/40 uppercase tracking-wider">Participants</p>
               <p className="font-serif text-[32px] text-gold">{event._count.participants}</p>
@@ -193,6 +209,13 @@ function OrganisateurDashboardContent() {
             <div>
               <p className="text-[11px] text-cream/40 uppercase tracking-wider">Revenus</p>
               <p className="font-serif text-[32px] text-gold">{new Intl.NumberFormat("fr-FR").format(totalRevenue)} <span className="text-[14px] text-cream/40">XOF</span></p>
+            </div>
+            <div>
+              <p className="text-[11px] text-cream/40 uppercase tracking-wider">Internationaux</p>
+              <p className="font-serif text-[32px] text-cream">
+                {participants.filter((p) => p.typeParticipant === "international").length}
+                <span className="text-[14px] text-cream/30 ml-1">/ {participants.length}</span>
+              </p>
             </div>
             <div>
               <p className="text-[11px] text-cream/40 uppercase tracking-wider">Capacite</p>
@@ -357,7 +380,7 @@ function OrganisateurDashboardContent() {
                 onClick={() => {
                   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
                   const sep = ";";
-                  const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Services demandes", "Check-in", "Date inscription"].join(sep);
+                  const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Services demandes", "Provenance", "Passeport", "Pays de depart", "Numero de vol", "Visa", "Arrivee", "Retour", "Plan de vol", "Check-in", "Date inscription"].join(sep);
                   const rows = participants.map((p) =>
                     [
                       String(p.ticketNumber).padStart(4, "0"),
@@ -370,6 +393,14 @@ function OrganisateurDashboardContent() {
                       p.type,
                       String(p.montant),
                       esc((p.serviceIds ?? []).map((id) => serviceName(id)).join(" + ")),
+                      p.typeParticipant === "international" ? "International" : "Local",
+                      esc(p.passeport ?? ""),
+                      esc(p.paysDepart ? countryName(p.paysDepart) : ""),
+                      esc(p.numeroVol ?? ""),
+                      p.aVisa === true ? "Oui" : p.aVisa === false ? "Non" : "",
+                      p.dateArrivee ? heure(p.dateArrivee) : "",
+                      p.dateRetour ? heure(p.dateRetour) : "",
+                      esc(p.planVol ?? ""),
                       p.checkedIn ? "Oui" : "Non",
                       new Date(p.createdAt).toLocaleDateString("fr-FR"),
                     ].join(sep)
@@ -421,6 +452,15 @@ function OrganisateurDashboardContent() {
                       <td className="px-4 py-3 font-mono text-gold text-[12px]">{p.reference}</td>
                       <td className="px-4 py-3 font-medium">
                         {p.prenom} {p.nom}
+                        {p.typeParticipant === "international" && (
+                          <span className="block text-[11px] text-mute font-normal mt-0.5">
+                            <span className="text-ink font-medium">International</span>
+                            {p.paysDepart ? ` · ${countryName(p.paysDepart)}` : ""}
+                            {p.numeroVol ? ` · vol ${p.numeroVol}` : ""}
+                            {p.dateArrivee ? ` · arrivée ${heure(p.dateArrivee)}` : ""}
+                            {p.aVisa === false ? " · sans visa" : p.aVisa === true ? " · visa OK" : ""}
+                          </span>
+                        )}
                         {(p.serviceIds?.length ?? 0) > 0 && (
                           <span className="block text-[11px] text-gold font-normal mt-0.5">
                             {p.serviceIds!.map(serviceName).join(" · ")}
