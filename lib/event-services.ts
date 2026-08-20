@@ -17,6 +17,10 @@ export interface EventService {
   prixBase: number;
   unite: string;
   icon: string | null;
+  // Renseignes pour l'hebergement : de quoi presenter un vrai choix
+  etoiles: number | null;
+  quartier: string | null;
+  badge: string | null;
 }
 
 /**
@@ -93,6 +97,9 @@ export async function loadServices(ids: string[]): Promise<EventService[]> {
       prixBase: true,
       unite: true,
       icon: true,
+      etoiles: true,
+      quartier: true,
+      badge: true,
     },
     orderBy: [{ categorie: "asc" }, { ordre: "asc" }],
   });

@@ -20,6 +20,10 @@ export interface PickerService {
   categorie: string;
   prixBase: number;
   unite: string;
+  /** Renseignes pour l'hebergement : etoiles, quartier, mention */
+  etoiles?: number | null;
+  quartier?: string | null;
+  badge?: string | null;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -134,6 +138,65 @@ export function ServicePicker({
               <span className="normal-case tracking-normal text-mute/60"> · un seul choix</span>
             )}
           </p>
+          {categorie === "hebergement" ? (
+            <div className="space-y-3">
+              {/* Choix rapide : une seule ligne, comme pour les pays */}
+              <select
+                value={list.find((h) => selected.includes(h.id))?.id ?? ""}
+                onChange={(e) => {
+                  const choisi = list.find((h) => h.id === e.target.value);
+                  const autres = new Set(list.map((h) => h.id));
+                  const reste = selected.filter((id) => !autres.has(id));
+                  onChange(choisi ? [...reste, choisi.id] : reste);
+                }}
+                className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px]"
+              >
+                <option value="">Aucun hébergement</option>
+                {list.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.nom} — {new Intl.NumberFormat("fr-FR").format(h.prixBase)} XOF / nuit
+                    {h.etoiles ? ` · ${h.etoiles}★` : ""}
+                  </option>
+                ))}
+              </select>
+
+              {/* Fiches completes : l'utilisateur voit tout ce qui existe */}
+              <div className="grid sm:grid-cols-2 gap-2">
+                {list.map((h) => {
+                  const actif = selected.includes(h.id);
+                  return (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => toggle(h)}
+                      className={`text-left border rounded-xl p-3 transition-all min-w-0 ${
+                        actif ? "border-gold bg-gold/5 ring-1 ring-gold/30" : "border-line bg-cream2 hover:border-gold/40"
+                      }`}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="text-[13px] text-ink font-medium min-w-0">{h.nom}</span>
+                        {h.etoiles ? (
+                          <span className="text-[11px] text-gold shrink-0">{"★".repeat(h.etoiles)}</span>
+                        ) : null}
+                      </span>
+                      {h.quartier || h.badge ? (
+                        <span className="block text-[11px] text-mute mt-0.5">
+                          {[h.quartier, h.badge].filter(Boolean).join(" · ")}
+                        </span>
+                      ) : null}
+                      {h.description ? (
+                        <span className="block text-[11px] text-mute/80 mt-1 leading-snug">{h.description}</span>
+                      ) : null}
+                      <span className="block text-[13px] text-gold font-semibold mt-1.5">
+                        {new Intl.NumberFormat("fr-FR").format(h.prixBase)} XOF
+                        <span className="text-[11px] text-mute font-normal"> / nuit</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
           <div className="grid sm:grid-cols-2 gap-2">
             {list.map((s) => {
               const active = selected.includes(s.id);
@@ -167,6 +230,7 @@ export function ServicePicker({
               );
             })}
           </div>
+          )}
         </div>
       ))}
     </div>
