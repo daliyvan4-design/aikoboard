@@ -630,7 +630,16 @@
       "amount": "Montant",
       "ref": "Référence",
       "ticket_no": "Ticket N°",
-      "no": "N°"
+      "no": "N°",
+      "get_qr": "Obtenir mon QR code",
+      "services_title": "Services de conciergerie",
+      "services_lead": "Cochez ce dont vous avez besoin. L’organisateur vous recontactera pour confirmer et chiffrer.",
+      "services_stay": "Précisez votre séjour pour que nous puissions chiffrer votre demande.",
+      "services_arrival": "Arrivée",
+      "services_departure": "Départ",
+      "services_people": "Personnes",
+      "services_nationality": "Nationalité",
+      "services_quote": "Votre demande de conciergerie a bien été transmise. Vous recevrez un devis."
     },
     "success": {
       "confirmed_ticket": "Ticket confirmé",
@@ -664,16 +673,7 @@
       "csv": "CSV",
       "no_participants": "Aucun participant pour le moment",
       "no_results": "Aucun résultat"
-    },
-    "get_qr": "Obtenir mon QR code",
-    "services_lead": "Cochez ce dont vous avez besoin. L’organisateur vous recontactera pour confirmer et chiffrer.",
-    "services_title": "Services de conciergerie",
-    "services_stay": "Précisez votre séjour pour que nous puissions chiffrer votre demande.",
-    "services_arrival": "Arrivée",
-    "services_departure": "Départ",
-    "services_people": "Personnes",
-    "services_quote": "Votre demande de conciergerie a bien été transmise. Vous recevrez un devis.",
-    "services_nationality": "Nationalité"
+    }
   },
   "residence": {
     "title": "Résidences disponibles",

@@ -630,7 +630,16 @@
       "amount": "Amount",
       "ref": "Reference",
       "ticket_no": "Ticket #",
-      "no": "#"
+      "no": "#",
+      "get_qr": "Get my QR code",
+      "services_title": "Concierge services",
+      "services_lead": "Tick what you need. The organiser will get back to you to confirm and quote.",
+      "services_stay": "Tell us about your stay so we can quote your request.",
+      "services_arrival": "Arrival",
+      "services_departure": "Departure",
+      "services_people": "People",
+      "services_nationality": "Nationality",
+      "services_quote": "Your concierge request has been received. You will get a quote shortly."
     },
     "success": {
       "confirmed_ticket": "Ticket confirmed",
@@ -664,16 +673,7 @@
       "csv": "CSV",
       "no_participants": "No participants yet",
       "no_results": "No results"
-    },
-    "get_qr": "Get my QR code",
-    "services_title": "Concierge services",
-    "services_lead": "Tick what you need. The organiser will get back to you to confirm and quote.",
-    "services_stay": "Tell us about your stay so we can quote your request.",
-    "services_arrival": "Arrival",
-    "services_departure": "Departure",
-    "services_people": "People",
-    "services_quote": "Your concierge request has been received. You will get a quote shortly.",
-    "services_nationality": "Nationality"
+    }
   },
   "residence": {
     "title": "Available residences",

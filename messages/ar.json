@@ -630,7 +630,16 @@
       "amount": "المبلغ",
       "ref": "المرجع",
       "ticket_no": "رقم التذكرة",
-      "no": "رقم"
+      "no": "رقم",
+      "get_qr": "احصل على رمز QR",
+      "services_title": "خدمات الكونسيرج",
+      "services_lead": "اختر ما تحتاجه. سيتواصل معك المنظم للتأكيد والتسعير.",
+      "services_stay": "حدد تفاصيل إقامتك حتى نتمكن من تسعير طلبك.",
+      "services_arrival": "الوصول",
+      "services_departure": "المغادرة",
+      "services_people": "عدد الأشخاص",
+      "services_nationality": "الجنسية",
+      "services_quote": "تم استلام طلب الكونسيرج. ستصلك التسعيرة قريبًا."
     },
     "success": {
       "confirmed_ticket": "تم تأكيد التذكرة",
@@ -664,16 +673,7 @@
       "csv": "CSV",
       "no_participants": "لا يوجد مشاركون حتى الآن",
       "no_results": "لا توجد نتائج"
-    },
-    "get_qr": "احصل على رمز QR",
-    "services_title": "خدمات الكونسيرج",
-    "services_lead": "اختر ما تحتاجه. سيتواصل معك المنظم للتأكيد والتسعير.",
-    "services_stay": "حدد تفاصيل إقامتك حتى نتمكن من تسعير طلبك.",
-    "services_arrival": "الوصول",
-    "services_departure": "المغادرة",
-    "services_people": "عدد الأشخاص",
-    "services_quote": "تم استلام طلب الكونسيرج. ستصلك التسعيرة قريبًا.",
-    "services_nationality": "الجنسية"
+    }
   },
   "residence": {
     "title": "الإقامات المتاحة",
