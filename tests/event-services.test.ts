@@ -98,6 +98,18 @@ describe("hebergement exclusif", () => {
     expect(await enforceExclusiveCategories(["h1", "t1", "h2"])).toEqual(["h1", "t1"]);
   });
 
+  it("ne garde qu un seul vehicule, sans toucher aux services qui l accompagnent", async () => {
+    prismaMock.service.findMany.mockResolvedValue([
+      { id: "v1", categorie: "vehicule" },
+      { id: "v2", categorie: "vehicule" },
+      { id: "t1", categorie: "transport" },
+    ]);
+    const { enforceExclusiveCategories } = await import("@/lib/event-services");
+
+    // Deux vehicules : le second saute. L accueil VIP, lui, reste.
+    expect(await enforceExclusiveCategories(["v1", "t1", "v2"])).toEqual(["v1", "t1"]);
+  });
+
   it("laisse cumuler les categories non exclusives", async () => {
     prismaMock.service.findMany.mockResolvedValue([
       { id: "e1", categorie: "extras" },

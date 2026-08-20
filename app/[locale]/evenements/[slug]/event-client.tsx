@@ -868,7 +868,7 @@ export default function EventClient() {
                     services={event.services}
                     selected={selectedServices}
                     onChange={setSelectedServices}
-                    exclusiveCategories={["hebergement"]}
+                    exclusiveCategories={["hebergement", "vehicule"]}
                   />
                   )}
 

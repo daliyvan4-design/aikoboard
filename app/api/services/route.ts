@@ -10,12 +10,16 @@ export async function GET() {
     orderBy: { ordre: "asc" },
   });
 
-  const grouped = {
-    transport: services.filter((s) => s.categorie === "transport"),
-    hebergement: services.filter((s) => s.categorie === "hebergement"),
-    repas: services.filter((s) => s.categorie === "repas"),
-    extra: services.filter((s) => s.categorie === "extras"),
-  };
+  // Regroupement dynamique : une nouvelle categorie ajoutee au catalogue
+  // apparait d'elle-meme, au lieu de disparaitre silencieusement d'une
+  // liste ecrite en dur.
+  const grouped: Record<string, typeof services> = {};
+  for (const service of services) {
+    (grouped[service.categorie] ??= []).push(service);
+  }
+
+  // "extra" est conserve : le tunnel de reservation historique le lit
+  grouped.extra = grouped.extras ?? [];
 
   return NextResponse.json(grouped);
 }

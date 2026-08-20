@@ -28,9 +28,10 @@ export interface EventService {
  * Personne ne dort dans deux hotels a la fois — et l'interface a beau
  * proposer un bouton radio, une requete forgee contournerait la regle.
  */
-export const EXCLUSIVE_CATEGORIES = ["hebergement"];
+export const EXCLUSIVE_CATEGORIES = ["hebergement", "vehicule"];
 
 export const SERVICE_CATEGORIES: Record<string, string> = {
+  vehicule: "Véhicule",
   transport: "Transport",
   hebergement: "Hébergement",
   repas: "Restauration",

@@ -27,7 +27,8 @@ export interface PickerService {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  transport: "Transport",
+  vehicule: "Véhicule avec chauffeur",
+  transport: "Transport & accueil",
   hebergement: "Hébergement",
   repas: "Restauration",
   extras: "Extras & conciergerie",
