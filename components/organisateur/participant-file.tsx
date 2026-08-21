@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Building2,
   CheckCircle2,
@@ -153,6 +154,13 @@ export function ParticipantFileRow({ participant: p, serviceName }: Props) {
         <span className="mono text-[12px] font-semibold text-ink pt-0.5 shrink-0">
           {String(p.ticketNumber).padStart(4, "0")}
         </span>
+
+        {/* La photo du badge : un visage vaut mieux qu'un nom a l'accueil */}
+        {p.photoUrl && (
+          <span className="relative w-9 h-9 rounded-full overflow-hidden bg-line shrink-0">
+            <Image src={p.photoUrl} alt="" fill className="object-cover" sizes="36px" />
+          </span>
+        )}
 
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
