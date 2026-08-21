@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
+import { Hero } from "@/components/home/hero";
 import {
   Calendar,
   Users,
@@ -109,36 +110,7 @@ export default function LandingPage() {
 
   return (
     <section>
-      {/* ─── HERO ─── */}
-      <div className="bg-ink text-cream">
-        <div className="max-w-7xl mx-auto px-5 lg:px-10 pt-16 lg:pt-24 pb-20 lg:pb-32">
-          <div className="max-w-2xl">
-            <h1 className="font-serif text-[42px] sm:text-[56px] lg:text-[68px] leading-[1.04] tracking-tight">
-              {t("h1_pre")}{" "}
-              <em className="text-gold not-italic">{t("h1_highlight")}</em>.
-            </h1>
-            <p className="mt-7 text-[17px] sm:text-[18px] text-cream/50 leading-[1.7] max-w-xl">
-              {t("lead")}
-            </p>
-
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                href={`/${locale}/evenements/creer`}
-                className="btn-press inline-flex items-center gap-2.5 bg-gold hover:bg-gold2 text-ink rounded-full px-7 py-3.5 text-[15px] font-semibold transition-colors"
-              >
-                {t("cta_create")}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="#participer"
-                className="inline-flex items-center gap-2 text-cream/50 hover:text-cream border border-cream/12 hover:border-cream/25 rounded-full px-7 py-3.5 text-[15px] transition-all"
-              >
-                {t("tab_participate")}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Hero locale={locale} t={t} />
 
       {/* ─── COMMENT CA MARCHE ─── */}
       <div className="max-w-7xl mx-auto px-5 lg:px-10 py-24 lg:py-32">

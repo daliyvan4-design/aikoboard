@@ -111,6 +111,23 @@ Capacité et numéro de ticket sont attribués dans une même transaction, prot�
 par une contrainte unique `(eventId, ticketNumber)` avec reprise en cas de
 collision. Un événement complet répond `409 EVENT_FULL`.
 
+### Vidéo du hero
+
+La page d'accueil réserve presque toute la hauteur du hero à une vidéo.
+Tant que `NEXT_PUBLIC_HERO_VIDEO_URL` n'est pas renseignée, aucune balise
+`<video>` n'est rendue — le fond de marque tient seul, sans requête perdue.
+
+```bash
+# fichier local
+NEXT_PUBLIC_HERO_VIDEO_URL="/videos/hero.mp4"
+NEXT_PUBLIC_HERO_POSTER_URL="/videos/hero-poster.jpg"
+```
+
+Format conseillé : 21:9, muette (elle est lue en `muted` + `loop`, seule
+condition pour que les navigateurs acceptent la lecture automatique), et
+suffisamment sombre dans sa moitié basse pour que le titre reste lisible —
+un voile dégradé est déjà appliqué par-dessus.
+
 ## Points d'attention
 
 - **PDF sans accents** : jsPDF (polices standard) rend mal les caractères

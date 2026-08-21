@@ -42,11 +42,21 @@ const config: Config = {
         draw: {
           to: { strokeDashoffset: "0" },
         },
+        slowZoom: {
+          from: { transform: "scale(1.08)" },
+          to: { transform: "scale(1)" },
+        },
+        riseIn: {
+          from: { opacity: "0", transform: "translateY(14px)" },
+          to: { opacity: "1", transform: "none" },
+        },
       },
       animation: {
         "fade-up": "fadeUp .35s ease both",
         draw: "draw 700ms .25s ease forwards",
         "draw-circle": "draw 900ms ease forwards",
+        "slow-zoom": "slowZoom 24s cubic-bezier(.16,.84,.44,1) both",
+        "rise-in": "riseIn .7s cubic-bezier(.16,.84,.44,1) both",
       },
     },
   },

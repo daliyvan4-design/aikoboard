@@ -112,3 +112,44 @@
 [dir="rtl"] .flip-rtl {
   transform: scaleX(-1);
 }
+
+/* ─── Hero ────────────────────────────────────────────────
+   Fond de scene, dans les seules couleurs de la marque. Il reste
+   visible tant qu'aucune video n'est deposee, et derriere elle si
+   le fichier tarde a charger. */
+.hero-stage {
+  background:
+    /* halo principal, cote texte */
+    radial-gradient(58% 68% at 14% 8%, rgba(200, 169, 81, 0.22), transparent 62%),
+    /* second foyer : occupe la moitie droite, laissee libre pour la video */
+    radial-gradient(52% 62% at 74% 42%, rgba(200, 169, 81, 0.11), transparent 68%),
+    radial-gradient(38% 46% at 96% 84%, rgba(200, 169, 81, 0.07), transparent 70%),
+    /* vignette : referme la scene sur ses bords */
+    radial-gradient(120% 120% at 50% 50%, transparent 42%, rgba(10, 10, 10, 0.55) 100%),
+    linear-gradient(178deg, #1F1F1F 0%, #141414 44%, #0A0A0A 100%);
+}
+
+/* Grain fin : casse les degrades trop lisses des ecrans larges */
+.hero-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* Ligne doree qui balaie lentement le haut de la scene */
+.hero-rule {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 169, 81, 0.55) 38%,
+    rgba(200, 169, 81, 0.9) 50%,
+    rgba(200, 169, 81, 0.55) 62%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slow-zoom,
+  .animate-rise-in {
+    animation: none !important;
+  }
+}
