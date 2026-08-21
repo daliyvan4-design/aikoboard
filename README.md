@@ -68,6 +68,20 @@ signale tout débordement horizontal avec l'élément fautif — le défaut qui
 force l'utilisateur à scroller latéralement. Passer `AUDIT_TOKEN=<token>` pour
 inclure les pages privées de l'organisateur.
 
+### Vérifier les droits du back-office
+
+```bash
+npx tsx scripts/temp-admins.ts create        # comptes jetables, un par rôle
+AUDIT_COMPTES='<le tableau affiché ci-dessus>' \
+  npx tsx scripts/audit-admin-roles.ts       # audite la production
+npx tsx scripts/temp-admins.ts delete
+```
+
+Le script ouvre chaque page d'administration avec chaque rôle et signale
+les écarts avec [lib/admin-access.ts](lib/admin-access.ts) : page atteinte
+alors qu'elle devrait être refusée, redirection à tort, écran d'erreur, ou
+appel d'API refusé — le symptôme d'un lien qui ne mène nulle part.
+
 ## Architecture
 
 ### Cycle de vie d'un événement
@@ -79,6 +93,19 @@ inclure les pages privées de l'organisateur.
    succès interroge l'API GeniusPay et réconcilie la base.
 3. L'organisateur reçoit par email son lien privé de gestion
    (`/fr/organisateur/<slug>?token=…`).
+
+### Droits du back-office
+
+Deux barrières, une seule table de vérité
+([lib/admin-access.ts](lib/admin-access.ts)) :
+
+- le **middleware** refuse la page et renvoie au tableau de bord ;
+- la **route d'API** revérifie le rôle avec `requireRole`.
+
+Le menu latéral lit la même table : un rôle ne voit que des liens qui
+mènent à une page utilisable. Profil et mot de passe font exception — ils
+sont ouverts à tous les rôles, car ils ne touchent que le compte de la
+session.
 
 ### Accès aux données d'un événement
 
