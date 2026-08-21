@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const prismaMock = {
   service: { findMany: vi.fn() },
+  residence: { findUnique: vi.fn() },
   commande: { create: vi.fn() },
 };
 
@@ -84,6 +85,56 @@ describe("devis de conciergerie", () => {
 
     expect(await createQuoteFromRegistration({ ...base, serviceIds: [] })).toBeNull();
     expect(prismaMock.commande.create).not.toHaveBeenCalled();
+  });
+
+  it("facture la chambre choisie a la nuit, au prix du parc", async () => {
+    prismaMock.service.findMany.mockResolvedValue([]);
+    prismaMock.residence.findUnique.mockResolvedValue({
+      nom: "Byblos Hotel",
+      quartier: "Marcory",
+      ville: "Abidjan",
+      tarifs: [
+        { id: "t-std", label: "Standard", typeChambre: "double", prixParNuit: 65_000 },
+        { id: "t-suite", label: "Suite", typeChambre: "suite", prixParNuit: 120_000 },
+      ],
+    });
+    const { createQuoteFromRegistration } = await import("@/lib/event-quote");
+
+    const devis = await createQuoteFromRegistration({
+      ...base,
+      serviceIds: [],
+      residenceId: "r-byblos",
+      residenceTarifId: "t-suite",
+    });
+
+    // 3 nuits x 120 000 : le nombre de personnes ne multiplie pas la chambre
+    expect(devis?.montantTotal).toBe(360_000);
+    const ligne = prismaMock.commande.create.mock.calls[0][0].data.lignes.create[0];
+    expect(ligne).toMatchObject({ residenceTarifId: "t-suite", quantite: 3, prixUnitaire: 120_000 });
+    expect(ligne.serviceId).toBeUndefined();
+  });
+
+  it("garde au devis une residence sans tarif, a chiffrer par l equipe", async () => {
+    prismaMock.service.findMany.mockResolvedValue([]);
+    prismaMock.residence.findUnique.mockResolvedValue({
+      nom: "Villa Ayaba",
+      quartier: "Marcory",
+      ville: "Abidjan",
+      tarifs: [],
+    });
+    const { createQuoteFromRegistration } = await import("@/lib/event-quote");
+
+    const devis = await createQuoteFromRegistration({
+      ...base,
+      serviceIds: [],
+      residenceId: "r-ayaba",
+      residenceTarifId: null,
+    });
+
+    expect(devis?.montantTotal).toBe(0);
+    const data = prismaMock.commande.create.mock.calls[0][0].data;
+    expect(data.notes).toContain("Villa Ayaba");
+    expect(data.lignes.create).toHaveLength(0);
   });
 
   it("n echoue jamais : une inscription reste valide si le devis casse", async () => {

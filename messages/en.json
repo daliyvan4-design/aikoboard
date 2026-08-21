@@ -655,7 +655,16 @@
       "travel_return": "Return date and time",
       "travel_plan": "Flight plan",
       "travel_plan_hint": "Stopovers, airline, terminal…",
-      "yes": "Yes"
+      "yes": "Yes",
+      "services_lodging": "Accommodation",
+      "lodging_none": "No accommodation",
+      "lodging_from": "from",
+      "lodging_on_request": "price on request",
+      "lodging_room": "Room",
+      "lodging_no_price": "Rate confirmed by our team",
+      "lodging_more": "More residences",
+      "lodging_sheet": "View details",
+      "vehicles_more": "More vehicles"
     },
     "success": {
       "confirmed_ticket": "Ticket confirmed",

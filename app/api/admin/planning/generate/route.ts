@@ -10,7 +10,11 @@ export async function POST(request: NextRequest) {
 
   const commande = await prisma.commande.findUnique({
     where: { id: commandeId },
-    include: { lignes: { include: { service: true } } },
+    include: {
+      lignes: {
+        include: { service: true, residenceTarif: { include: { residence: true } } },
+      },
+    },
   });
   if (!commande) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
 
@@ -32,7 +36,29 @@ export async function POST(request: NextRequest) {
   }> = [];
 
   for (const ligne of commande.lignes) {
-    const cat = ligne.service.categorie;
+    // Nuitees dans une residence du parc : la ligne ne porte pas de
+    // service du catalogue, mais une chambre reelle.
+    if (ligne.residenceTarif) {
+      const residence = ligne.residenceTarif.residence;
+      for (let d = 1; d <= totalDays; d++) {
+        entries.push({
+          commandeId,
+          jour: d,
+          heure: d === 1 ? "14:00" : "00:00",
+          type: "hebergement",
+          titre: residence.nom,
+          details: `${ligne.residenceTarif.label} · ${ligne.quantite} nuit(s)`,
+          serviceId: null,
+          auto: true,
+        });
+      }
+      continue;
+    }
+
+    const service = ligne.service;
+    // Ligne sans objet planifiable (service retire du catalogue)
+    if (!service) continue;
+    const cat = service.categorie;
 
     if (cat === "transport") {
       entries.push({
@@ -40,7 +66,7 @@ export async function POST(request: NextRequest) {
         jour: 1,
         heure: commande.heureArrivee || "08:00",
         type: "transport",
-        titre: `${ligne.service.nom}`,
+        titre: `${service.nom}`,
         details: null,
         serviceId: ligne.serviceId,
         auto: true,
@@ -52,7 +78,7 @@ export async function POST(request: NextRequest) {
           jour: d,
           heure: d === 1 ? "14:00" : "00:00",
           type: "hebergement",
-          titre: `${ligne.service.nom}`,
+          titre: `${service.nom}`,
           details: `${ligne.quantite} nuit(s)`,
           serviceId: ligne.serviceId,
           auto: true,
@@ -60,15 +86,15 @@ export async function POST(request: NextRequest) {
       }
     } else if (cat === "repas") {
       for (let d = 1; d <= totalDays; d++) {
-        const heure = ligne.service.nom.toLowerCase().includes("petit") ? "07:30"
-          : ligne.service.nom.toLowerCase().includes("déjeuner") || ligne.service.nom.toLowerCase().includes("lunch") ? "12:30"
+        const heure = service.nom.toLowerCase().includes("petit") ? "07:30"
+          : service.nom.toLowerCase().includes("déjeuner") || service.nom.toLowerCase().includes("lunch") ? "12:30"
           : "19:30";
         entries.push({
           commandeId,
           jour: d,
           heure,
           type: "repas",
-          titre: `${ligne.service.nom}`,
+          titre: `${service.nom}`,
           details: `${commande.nombrePersonnes} pax`,
           serviceId: ligne.serviceId,
           auto: true,
@@ -80,7 +106,7 @@ export async function POST(request: NextRequest) {
         jour: 1,
         heure: "10:00",
         type: "extra",
-        titre: `${ligne.service.nom}`,
+        titre: `${service.nom}`,
         details: `Qté: ${ligne.quantite}`,
         serviceId: ligne.serviceId,
         auto: true,

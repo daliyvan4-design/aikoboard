@@ -9,6 +9,7 @@ import { uploadBase64Image } from "@/lib/cloudinary";
 import { expectedParticipantAmount, defaultParticipantType } from "@/lib/pricing";
 import { assertEventAccess } from "@/lib/event-access";
 import { intersectWithPack, enforceExclusiveCategories } from "@/lib/event-services";
+import { resolveStayChoice } from "@/lib/event-residences";
 import { createQuoteFromRegistration } from "@/lib/event-quote";
 import { isKnownCountry } from "@/lib/countries";
 import { parseTravelInfo } from "@/lib/participant-travel";
@@ -71,6 +72,19 @@ export async function POST(
     // Services demandes : uniquement ceux que l evenement propose
     const serviceIds = await enforceExclusiveCategories(
       intersectWithPack(raw.serviceIds, event.serviceIds),
+    );
+
+    // Hebergement : une residence du parc, parmi celles que l evenement
+    // propose, et une chambre qui lui appartient vraiment.
+    const sejourResidence = await resolveStayChoice(
+      // La residence qui accueille l evenement reste choisissable, meme
+      // si l organisateur ne l a pas ajoutee au pack.
+      [
+        ...(Array.isArray(event.residenceIds) ? event.residenceIds : []),
+        ...(event.residenceId ? [event.residenceId] : []),
+      ],
+      raw.residenceId,
+      body.residenceTarifId,
     );
 
     // Voyage : renseigne uniquement pour un participant international
@@ -137,7 +151,8 @@ export async function POST(
               type,
               statut,
               montant,
-              residenceTarifId: body.residenceTarifId ?? null,
+              residenceId: sejourResidence.residenceId,
+              residenceTarifId: sejourResidence.residenceTarifId,
               serviceIds,
               ...voyage,
             },
@@ -183,7 +198,7 @@ export async function POST(
     // Services de conciergerie : un devis a chiffrer par l'equipe, jamais
     // un debit automatique — la moitie du catalogue se facture a la duree.
     let quote: { reference: string; montantTotal: number } | null = null;
-    if (serviceIds.length > 0) {
+    if (serviceIds.length > 0 || sejourResidence.residenceId) {
       quote = await createQuoteFromRegistration({
         participantId: participantId!,
         prenom: body.prenom,
@@ -191,6 +206,8 @@ export async function POST(
         email,
         telephone: body.telephone,
         serviceIds,
+        residenceId: sejourResidence.residenceId,
+        residenceTarifId: sejourResidence.residenceTarifId,
         dateArrivee: voyage.dateArrivee ?? (isNaN(sejourArrivee.getTime()) ? event.dateDebut : sejourArrivee),
         dateDepart: voyage.dateRetour ?? (isNaN(sejourDepart.getTime()) ? event.dateFin : sejourDepart),
         nombrePersonnes,
@@ -230,6 +247,7 @@ export async function POST(
         montant,
         statut,
         serviceIds,
+        residenceId: sejourResidence.residenceId,
         typeParticipant: voyage.typeParticipant,
         devis: quote?.reference ?? null,
       },

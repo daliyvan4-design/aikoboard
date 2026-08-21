@@ -655,7 +655,16 @@
       "travel_return": "تاريخ ووقت العودة",
       "travel_plan": "خطة الرحلة",
       "travel_plan_hint": "التوقفات، شركة الطيران، المبنى…",
-      "yes": "نعم"
+      "yes": "نعم",
+      "services_lodging": "الإقامة",
+      "lodging_none": "بدون إقامة",
+      "lodging_from": "ابتداءً من",
+      "lodging_on_request": "السعر عند الطلب",
+      "lodging_room": "الغرفة",
+      "lodging_no_price": "يحدّد الفريق السعر",
+      "lodging_more": "المزيد من أماكن الإقامة",
+      "lodging_sheet": "عرض التفاصيل",
+      "vehicles_more": "المزيد من المركبات"
     },
     "success": {
       "confirmed_ticket": "تم تأكيد التذكرة",

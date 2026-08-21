@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
+  AlertTriangle,
   Plus,
   X,
   MapPin,
@@ -262,6 +263,8 @@ export default function ResidencesPage() {
     fetchResidences();
   };
 
+  const sansTarif = residences.filter((r) => r.tarifs.length === 0).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -455,6 +458,24 @@ export default function ResidencesPage() {
         </div>
       )}
 
+      {/* Sans tarif, une residence part au devis en "prix sur demande" :
+          l'equipe doit la chiffrer a la main a chaque inscription. */}
+      {!loading && sansTarif > 0 && (
+        <div className="bg-err/5 border border-err/30 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <AlertTriangle className="w-4 h-4 text-err mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-[13px] text-ink font-medium">
+              {sansTarif} residence{sansTarif > 1 ? "s" : ""} sans tarif
+            </p>
+            <p className="text-[12px] text-mute mt-0.5">
+              Les participants les voient en {"\u00ab"} prix sur demande {"\u00bb"} et
+              l{"\u2019"}equipe doit chiffrer chaque devis a la main. Ouvrez la fiche
+              puis ajoutez au moins un tarif par chambre.
+            </p>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-gold animate-spin" />
@@ -499,9 +520,13 @@ export default function ResidencesPage() {
                     </p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-[11px] text-mute">{r.capacite} chambres</span>
-                      {minPrice && (
+                      {minPrice ? (
                         <span className="text-[11px] text-gold font-medium">
                           {formatPrice(minPrice)} XOF / nuit
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-err font-medium">
+                          tarif manquant
                         </span>
                       )}
                       {r._count && r._count.events > 0 && (

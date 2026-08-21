@@ -24,6 +24,12 @@ export interface QuoteInput {
   email: string;
   telephone: string;
   serviceIds: string[];
+  /**
+   * Hebergement retenu dans le parc reel : la residence dit ou le
+   * participant dort, le tarif dans quelle chambre et a quel prix.
+   */
+  residenceId?: string | null;
+  residenceTarifId?: string | null;
   /** Dates du sejour ; a defaut, celles de l'evenement. */
   dateArrivee: Date;
   dateDepart: Date;
@@ -72,33 +78,92 @@ export function suggestQuantity(unite: string, nights: number, people: number): 
 export async function createQuoteFromRegistration(
   input: QuoteInput,
 ): Promise<{ reference: string; montantTotal: number } | null> {
-  if (input.serviceIds.length === 0) return null;
+  if (input.serviceIds.length === 0 && !input.residenceId) return null;
 
   try {
     const services = await prisma.service.findMany({
       where: { id: { in: input.serviceIds }, actif: true },
       include: { tarifs: { where: { actif: true } } },
     });
-    if (services.length === 0) return null;
+
+    // Hebergement : une vraie residence du parc, pas une copie du catalogue
+    const residence = input.residenceId
+      ? await prisma.residence.findUnique({
+          where: { id: input.residenceId },
+          select: {
+            nom: true,
+            quartier: true,
+            ville: true,
+            tarifs: {
+              where: { actif: true },
+              select: { id: true, label: true, typeChambre: true, prixParNuit: true },
+            },
+          },
+        })
+      : null;
+
+    if (services.length === 0 && !residence) return null;
 
     const nights = countNights(input.dateArrivee, input.dateDepart);
     const people = Math.max(1, input.nombrePersonnes);
 
     let montantTotal = 0;
-    const lignes = services.map((service) => {
+    const lignes: {
+      serviceId?: string;
+      tarifId?: string | null;
+      residenceTarifId?: string;
+      quantite: number;
+      prixUnitaire: number;
+      sousTotal: number;
+    }[] = [];
+    // Recapitulatif lisible, pour la notification interne
+    const detail: string[] = [];
+
+    for (const service of services) {
       const tarif = service.tarifs[0];
       const prixUnitaire = tarif ? tarif.prix : service.prixBase;
       const quantite = suggestQuantity(service.unite, nights, people);
       const sousTotal = prixUnitaire * quantite;
       montantTotal += sousTotal;
-      return {
+      lignes.push({
         serviceId: service.id,
         tarifId: tarif?.id ?? null,
         quantite,
         prixUnitaire,
         sousTotal,
-      };
-    });
+      });
+      detail.push(
+        `${service.nom} — ${quantite} x ${new Intl.NumberFormat("fr-FR").format(prixUnitaire)} XOF`,
+      );
+    }
+
+    // La chambre choisie donne le prix ; sans tarif saisi, la residence
+    // part quand meme au devis et l'equipe la chiffre.
+    const chambre = input.residenceTarifId
+      ? residence?.tarifs.find((t) => t.id === input.residenceTarifId)
+      : undefined;
+    let noteHebergement: string | undefined;
+
+    if (residence && chambre) {
+      const sousTotal = chambre.prixParNuit * nights;
+      montantTotal += sousTotal;
+      lignes.push({
+        residenceTarifId: chambre.id,
+        quantite: nights,
+        prixUnitaire: chambre.prixParNuit,
+        sousTotal,
+      });
+      detail.push(
+        `${residence.nom} · ${chambre.label} (${chambre.typeChambre}) — ${nights} nuit(s) x ${new Intl.NumberFormat("fr-FR").format(chambre.prixParNuit)} XOF`,
+      );
+    } else if (residence) {
+      noteHebergement = `Hebergement souhaite : ${residence.nom}${
+        residence.quartier ? ` (${residence.quartier})` : ""
+      } — ${nights} nuit(s), tarif a definir`;
+      detail.push(`${residence.nom} — ${nights} nuit(s), tarif a chiffrer`);
+    }
+
+    if (lignes.length === 0 && !noteHebergement) return null;
 
     const commande = await prisma.commande.create({
       data: {
@@ -115,6 +180,7 @@ export async function createQuoteFromRegistration(
         dateArrivee: input.dateArrivee,
         dateDepart: input.dateDepart,
         nombrePersonnes: people,
+        notes: noteHebergement,
         montantTotal,
         lignes: { create: lignes },
       },
@@ -138,7 +204,7 @@ export async function createQuoteFromRegistration(
       reference: commande.reference,
       amount: montantTotal,
       sejour,
-      services: services.map((s, i) => `${s.nom} — ${lignes[i].quantite} x ${new Intl.NumberFormat("fr-FR").format(lignes[i].prixUnitaire)} XOF`),
+      services: detail,
     }).catch(() => {});
 
     return commande;

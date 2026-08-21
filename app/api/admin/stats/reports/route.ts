@@ -14,7 +14,11 @@ export async function GET(request: NextRequest) {
 
   const commandes = await prisma.commande.findMany({
     where: { createdAt: { gte: since }, statut: { not: "ANNULEE" } },
-    include: { lignes: { include: { service: true } } },
+    include: {
+      lignes: {
+        include: { service: true, residenceTarif: { include: { residence: true } } },
+      },
+    },
   });
 
   const caByDay: Record<string, number> = {};
@@ -26,8 +30,20 @@ export async function GET(request: NextRequest) {
   const serviceCA: Record<string, { nom: string; qty: number; ca: number }> = {};
   for (const c of commandes) {
     for (const l of c.lignes) {
-      const key = l.serviceId;
-      if (!serviceCA[key]) serviceCA[key] = { nom: l.service.nom, qty: 0, ca: 0 };
+      // Un service du catalogue, ou une chambre d une residence du parc
+      const key = l.serviceId ?? l.residenceTarifId;
+      if (!key) continue;
+      if (!serviceCA[key]) {
+        serviceCA[key] = {
+          nom:
+            l.service?.nom ??
+            (l.residenceTarif
+              ? `${l.residenceTarif.residence.nom} · ${l.residenceTarif.label}`
+              : "Prestation"),
+          qty: 0,
+          ca: 0,
+        };
+      }
       serviceCA[key].qty += l.quantite;
       serviceCA[key].ca += l.sousTotal;
     }

@@ -97,10 +97,15 @@ model LigneCommande {
   id           String   @id @default(cuid())
   commandeId   String
   commande     Commande @relation(fields: [commandeId], references: [id], onDelete: Cascade)
-  serviceId    String
-  service      Service  @relation(fields: [serviceId], references: [id])
+  // Une ligne porte soit un service du catalogue, soit une nuitee dans une
+  // residence du parc. L hebergement ne se duplique pas en service : il
+  // garde ses vrais tarifs par chambre.
+  serviceId    String?
+  service      Service? @relation(fields: [serviceId], references: [id])
   tarifId      String?
   tarif        Tarif?   @relation(fields: [tarifId], references: [id])
+  residenceTarifId String?
+  residenceTarif   ResidenceTarif? @relation(fields: [residenceTarifId], references: [id])
   quantite     Int
   prixUnitaire Float
   sousTotal    Float
@@ -199,9 +204,13 @@ model Event {
   // Services du catalogue inclus dans le pack de l evenement : ce sont
   // les seuls que le participant pourra demander.
   serviceIds      String[]      @default([])
+  // Hebergements proposes aux participants. Ce sont de vraies residences
+  // du parc gere dans /admin/residences, avec leurs photos et leurs tarifs
+  // par chambre — jamais une copie saisie a la main.
+  residenceIds    String[]      @default([])
   institutionnel  Boolean       @default(false)
   residenceId     String?
-  residence       Residence?    @relation(fields: [residenceId], references: [id])
+  residence       Residence?    @relation("EventResidence", fields: [residenceId], references: [id])
   contactEmail    String
   contactTel      String?
   statut          String        @default("actif")
@@ -236,7 +245,8 @@ model Residence {
   statut        String            @default("actif")
   images        ResidenceImage[]
   tarifs        ResidenceTarif[]
-  events        Event[]
+  events        Event[]           @relation("EventResidence")
+  participants  Participant[]     @relation("ParticipantResidence")
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 }
@@ -263,6 +273,8 @@ model ResidenceTarif {
   devise      String    @default("XOF")
   capacite    Int       @default(2)
   actif       Boolean   @default(true)
+  participants Participant[]
+  lignes       LigneCommande[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -286,7 +298,13 @@ model Participant {
   statut        String   @default("confirme")
   paymentRef    String?
   montant       Float    @default(0)
+  // ── Hebergement choisi parmi les residences proposees par l evenement.
+  // La residence dit ou il dort, le tarif dit dans quelle chambre et a
+  // quel prix : les deux viennent du parc reel, pas d une saisie libre.
+  residenceId      String?
+  residence        Residence?      @relation("ParticipantResidence", fields: [residenceId], references: [id])
   residenceTarifId String?
+  residenceTarif   ResidenceTarif? @relation(fields: [residenceTarifId], references: [id])
   // Services demandes par le participant, choisis parmi ceux du pack.
   serviceIds    String[] @default([])
 

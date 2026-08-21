@@ -2,9 +2,11 @@
 
 import { Plus } from "lucide-react";
 import { TariffRow } from "./tariff-row";
-import { CarFront, BedDouble, Utensils, Sparkles } from "lucide-react";
+import { Car, CarFront, BedDouble, Utensils, Sparkles, type LucideIcon } from "lucide-react";
+import { RATE } from "@/lib/utils";
 
-const ICONS: Record<string, any> = {
+const ICONS: Record<string, LucideIcon> = {
+  vehicule: Car,
   transport: CarFront,
   hebergement: BedDouble,
   repas: Utensils,
@@ -12,7 +14,8 @@ const ICONS: Record<string, any> = {
 };
 
 const LABELS: Record<string, string> = {
-  transport: "Transport",
+  vehicule: "Véhicules avec chauffeur",
+  transport: "Transport & accueil",
   hebergement: "Hébergement",
   repas: "Repas",
   extras: "Extras",
@@ -22,6 +25,9 @@ interface Service {
   id: string;
   nom: string;
   actif: boolean;
+  /** Prix affiche au participant quand le service n'a pas de tarif detaille */
+  prixBase: number;
+  unite: string;
   tarifs: { id: string; label: string; prix: number }[];
 }
 
@@ -33,6 +39,7 @@ interface TariffCategoryProps {
   onToggleVisible: (serviceId: string, actif: boolean) => void;
   onDeleteTarif: (tarifId: string) => void;
   onAddTarif: (serviceId: string) => void;
+  onPrixBaseChange: (serviceId: string, prix: number) => void;
 }
 
 export function TariffCategory({
@@ -43,10 +50,11 @@ export function TariffCategory({
   onToggleVisible,
   onDeleteTarif,
   onAddTarif,
+  onPrixBaseChange,
 }: TariffCategoryProps) {
   const Icon = ICONS[categorie] || Sparkles;
   const label = LABELS[categorie] || categorie;
-  const tarifCount = services.reduce((s, svc) => s + svc.tarifs.length, 0);
+  const tarifCount = services.reduce((s, svc) => s + Math.max(1, svc.tarifs.length), 0);
 
   return (
     <div className="bg-white rounded-2xl border border-line overflow-hidden">
@@ -82,17 +90,59 @@ export function TariffCategory({
           </thead>
           <tbody className="divide-y divide-line">
             {services.flatMap((svc) =>
-              svc.tarifs.map((t) => (
-                <TariffRow
-                  key={t.id}
-                  tarif={t}
-                  serviceActif={svc.actif}
-                  onLabelChange={onLabelChange}
-                  onPriceChange={onPriceChange}
-                  onToggleVisible={(v) => onToggleVisible(svc.id, v)}
-                  onDelete={onDeleteTarif}
-                />
-              ))
+              svc.tarifs.length > 0
+                ? svc.tarifs.map((t) => (
+                    <TariffRow
+                      key={t.id}
+                      tarif={t}
+                      serviceActif={svc.actif}
+                      onLabelChange={onLabelChange}
+                      onPriceChange={onPriceChange}
+                      onToggleVisible={(v) => onToggleVisible(svc.id, v)}
+                      onDelete={onDeleteTarif}
+                    />
+                  ))
+                : [
+                    // Sans tarif detaille, c'est le prix de reference du
+                    // service que voit le participant : il s'edite ici.
+                    <tr key={svc.id} className="group">
+                      <td className="px-5 py-3 text-ink">
+                        {svc.nom}
+                        <span className="text-mute text-[11px]"> · prix de r{"é"}f{"é"}rence / {svc.unite}</span>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <input
+                          defaultValue={Math.round(svc.prixBase).toLocaleString("fr-FR").replace(/,/g, " ")}
+                          onBlur={(e) => {
+                            const v = parseInt(e.target.value.replace(/\D/g, "")) || 0;
+                            if (v !== Math.round(svc.prixBase)) onPrixBaseChange(svc.id, v);
+                          }}
+                          className="bg-transparent text-right mono w-28 focus:bg-cream rounded px-2 py-1 text-ink font-semibold"
+                        />
+                      </td>
+                      <td className="px-5 py-3 text-right mono text-mute">
+                        {Math.round(svc.prixBase * RATE.EUR)} {"€"}
+                      </td>
+                      <td className="px-5 py-3 text-right mono text-mute">
+                        ${Math.round(svc.prixBase * RATE.USD)}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          onClick={() => onToggleVisible(svc.id, !svc.actif)}
+                          className={`relative w-[42px] h-6 rounded-full transition-colors cursor-pointer inline-block align-middle ${
+                            svc.actif ? "bg-ink" : "bg-line"
+                          }`}
+                        >
+                          <span
+                            className={`absolute top-[2px] w-5 h-5 rounded-full bg-white shadow-sm transition-all ${
+                              svc.actif ? "left-5" : "left-[2px]"
+                            }`}
+                          />
+                        </button>
+                      </td>
+                      <td className="px-5 py-3" />
+                    </tr>,
+                  ],
             )}
           </tbody>
         </table>

@@ -116,7 +116,13 @@ export default function CommandesPage() {
                   <p className="text-[10px] uppercase tracking-[0.18em] text-mute mb-2">Lignes de commande</p>
                   {detail.lignes.map((l: any) => (
                     <div key={l.id} className="flex justify-between text-[13px] py-1">
-                      <span className="text-ink">{l.service?.nom || "Service"} × {l.quantite}</span>
+                      <span className="text-ink">
+                        {l.service?.nom ??
+                          (l.residenceTarif
+                            ? `${l.residenceTarif.residence.nom} · ${l.residenceTarif.label}`
+                            : "Prestation")}{" "}
+                        × {l.quantite}
+                      </span>
                       <span className="mono text-ink">{fmt(l.sousTotal)}</span>
                     </div>
                   ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { ServicePicker, type PickerService } from "@/components/services/service-picker";
+import { ResidencePicker, type PickerResidence } from "@/components/residences/residence-picker";
 import { COUNTRIES_PRIORITY, COUNTRIES_OTHER } from "@/lib/countries";
 
 import { useState, useEffect } from "react";
@@ -72,6 +73,7 @@ interface EventData {
   offreVehicule?: boolean;
   offreExtras?: boolean;
   services?: PickerService[];
+  residences?: PickerResidence[];
   residence?: ResidenceData | null;
   _count: { participants: number };
 }
@@ -112,6 +114,11 @@ export default function EventClient() {
   const [payError, setPayError] = useState("");
   const [selectedTarifId, setSelectedTarifId] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  // Hebergement du pack : residence reelle + chambre
+  const [hebergement, setHebergement] = useState<{ residenceId: string | null; tarifId: string | null }>({
+    residenceId: null,
+    tarifId: null,
+  });
   const [wantsServices, setWantsServices] = useState(false);
   const [voyage, setVoyage] = useState({
     typeParticipant: "local" as "local" | "international",
@@ -198,7 +205,8 @@ export default function EventClient() {
           photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
           montant: 0,
-          residenceTarifId: selectedTarifId,
+          residenceId: wantsServices ? hebergement.residenceId : null,
+          residenceTarifId: wantsServices && hebergement.residenceId ? hebergement.tarifId : selectedTarifId,
           serviceIds: wantsServices ? selectedServices : [],
           typeParticipant: voyage.typeParticipant,
           ...(voyage.typeParticipant === "international" && {
@@ -261,7 +269,8 @@ export default function EventClient() {
           titre: !isConcert ? form.titre || undefined : undefined,
           photo: photoBase64,
           type: isConcert ? "ticket" : "badge",
-          residenceTarifId: selectedTarifId,
+          residenceId: wantsServices ? hebergement.residenceId : null,
+          residenceTarifId: wantsServices && hebergement.residenceId ? hebergement.tarifId : selectedTarifId,
           serviceIds: wantsServices ? selectedServices : [],
           typeParticipant: voyage.typeParticipant,
           ...(voyage.typeParticipant === "international" && {
@@ -846,7 +855,8 @@ export default function EventClient() {
                 </div>
               )}
 
-              {event.services && event.services.length > 0 && (
+              {((event.services?.length ?? 0) > 0 ||
+                (event.residences?.length ?? 0) > 0) && (
                 <div className="md:col-span-2 border-t border-line pt-6">
                   <label className="flex items-start gap-3 cursor-pointer mb-4">
                     <input
@@ -864,15 +874,48 @@ export default function EventClient() {
                   </label>
 
                   {wantsServices && (
-                  <ServicePicker
-                    services={event.services}
-                    selected={selectedServices}
-                    onChange={setSelectedServices}
-                    exclusiveCategories={["hebergement", "vehicule"]}
-                  />
+                    <div className="space-y-6">
+                      {/* Hebergement : le parc reel, une ligne par adresse */}
+                      {event.residences && event.residences.length > 0 && (
+                        <div>
+                          <p className="text-[11px] uppercase tracking-wider text-mute mb-2">
+                            {t("services_lodging")}
+                          </p>
+                          <ResidencePicker
+                            residences={event.residences}
+                            residenceId={hebergement.residenceId}
+                            tarifId={hebergement.tarifId}
+                            onChange={(residenceId, tarifId) => setHebergement({ residenceId, tarifId })}
+                            moreHref={`/${locale}/residences`}
+                            detailHref={(id) => `/${locale}/residences/${id}`}
+                            labels={{
+                              none: t("lodging_none"),
+                              from: t("lodging_from"),
+                              onRequest: t("lodging_on_request"),
+                              room: t("lodging_room"),
+                              roomNone: t("lodging_no_price"),
+                              more: t("lodging_more"),
+                              sheet: t("lodging_sheet"),
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {event.services && event.services.length > 0 && (
+                        <ServicePicker
+                          services={event.services}
+                          selected={selectedServices}
+                          onChange={setSelectedServices}
+                          exclusiveCategories={["hebergement", "vehicule"]}
+                          moreLinks={{
+                            vehicule: { href: `/${locale}/vehicules`, label: t("vehicles_more") },
+                          }}
+                        />
+                      )}
+                    </div>
                   )}
 
-                  {wantsServices && selectedServices.length > 0 && (
+                  {wantsServices && (selectedServices.length > 0 || hebergement.residenceId) && (
                     <div className="mt-5 bg-cream2 border border-line rounded-xl p-4 animate-fade-up">
                       <p className="text-[12px] text-mute mb-3">
                         {t("services_stay")}

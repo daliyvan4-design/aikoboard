@@ -6,6 +6,7 @@ import { log } from "@/lib/logger";
 import { EVENT_CREATION_PRICE_XOF } from "@/lib/pricing";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import { sanitizeServiceIds } from "@/lib/event-services";
+import { sanitizeResidenceIds } from "@/lib/event-residences";
 
 /** Clé privée d'accès au tableau de bord organisateur. */
 function generateManageToken(): string {
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
 
     // Pack de conciergerie : seuls les services actifs du catalogue sont retenus
     const serviceIds = await sanitizeServiceIds(body.serviceIds);
+    // Hebergements proposes : de vraies residences du parc, jamais une saisie libre
+    const residenceIds = await sanitizeResidenceIds(body.residenceIds);
 
     const base = slugify(body.nom);
     const slug = await uniqueSlug(base);
@@ -77,6 +80,7 @@ export async function POST(req: NextRequest) {
         offreVehicule: body.offreVehicule === true,
         offreExtras: body.offreExtras === true,
         serviceIds,
+        residenceIds,
         institutionnel: body.institutionnel === true,
         residenceId: typeof body.residenceId === "string" ? body.residenceId : null,
         contactEmail: body.contactEmail.trim().substring(0, 200),

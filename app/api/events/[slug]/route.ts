@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveEventSlug } from "@/lib/slug";
 import { loadServices } from "@/lib/event-services";
+import { loadEventResidences } from "@/lib/event-residences";
 import { log } from "@/lib/logger";
 
 /**
@@ -52,6 +53,7 @@ export async function GET(
         offreExtras: true,
         institutionnel: true,
         serviceIds: true,
+        residenceIds: true,
         statut: true,
         createdAt: true,
         _count: { select: { participants: true } },
@@ -76,9 +78,13 @@ export async function GET(
     // peut demander et a quel tarif indicatif.
     const services = await loadServices(event.serviceIds);
 
+    // Hebergements proposes : les vraies residences du parc, avec leurs
+    // photos et leurs chambres. Le participant choisit dedans.
+    const residences = await loadEventResidences(event.residenceIds);
+
     return NextResponse.json({
       success: true,
-      data: { ...event, checkedInCount, canonicalSlug: event.slug, services },
+      data: { ...event, checkedInCount, canonicalSlug: event.slug, services, residences },
     });
   } catch (err) {
     log.error("Lecture evenement impossible", { route: "GET /api/events/[slug]" }, err);

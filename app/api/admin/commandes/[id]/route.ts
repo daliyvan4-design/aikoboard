@@ -21,7 +21,15 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
   const commande = await prisma.commande.findUnique({
     where: { id },
-    include: { lignes: { include: { service: true, tarif: true } } },
+    include: {
+      lignes: {
+        include: {
+          service: true,
+          tarif: true,
+          residenceTarif: { include: { residence: { select: { nom: true, quartier: true } } } },
+        },
+      },
+    },
   });
 
   if (!commande) return NextResponse.json({ error: "Not found" }, { status: 404 });

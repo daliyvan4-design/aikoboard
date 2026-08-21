@@ -11,10 +11,18 @@ interface Service {
   nom: string;
   categorie: string;
   actif: boolean;
+  prixBase: number;
+  unite: string;
   tarifs: { id: string; label: string; prix: number }[];
 }
 
-const CATEGORIES = ["transport", "hebergement", "repas", "extras"];
+/**
+ * Ordre d'affichage souhaite. Toute categorie absente de cette liste
+ * s'affiche quand meme, a la suite : une nouvelle famille de prestations
+ * ne doit pas disparaitre du back-office parce qu'on a oublie de
+ * l'ajouter ici — c'est exactement ce qui est arrive aux vehicules.
+ */
+const ORDRE_CATEGORIES = ["vehicule", "transport", "hebergement", "repas", "extras"];
 
 export default function TarifsPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -22,12 +30,14 @@ export default function TarifsPage() {
   const { show } = useToast();
 
   const load = useCallback(() => {
-    fetch("/api/services")
+    // Route admin : elle renvoie aussi les services masques, sans quoi un
+    // service desactive ne pourrait plus jamais etre reactive.
+    fetch("/api/admin/services")
       .then((r) => r.json())
-      .then((grouped: Record<string, Service[]>) => {
-        const all = Object.values(grouped).flat();
-        setServices(all);
-      });
+      .then((res: { success?: boolean; data?: Service[] }) => {
+        setServices(res.data ?? []);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -67,6 +77,16 @@ export default function TarifsPage() {
     load();
   }
 
+  async function handlePrixBaseChange(serviceId: string, prixBase: number) {
+    await fetch(`/api/admin/services/${serviceId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prixBase }),
+    });
+    show("Prix de référence mis à jour");
+    load();
+  }
+
   async function handleAddTarif(serviceId: string) {
     await fetch("/api/admin/tarifs", {
       method: "POST",
@@ -82,7 +102,13 @@ export default function TarifsPage() {
         s.tarifs.some((t) => t.label.toLowerCase().includes(search.toLowerCase())))
     : services;
 
-  const totalTarifs = services.reduce((s, svc) => s + svc.tarifs.length, 0);
+  const totalTarifs = services.reduce((s, svc) => s + Math.max(1, svc.tarifs.length), 0);
+
+  // Categories reellement presentes, dans l'ordre voulu puis les autres
+  const categories = [
+    ...ORDRE_CATEGORIES.filter((c) => services.some((s) => s.categorie === c)),
+    ...[...new Set(services.map((s) => s.categorie))].filter((c) => !ORDRE_CATEGORIES.includes(c)),
+  ];
 
   return (
     <>
@@ -100,7 +126,7 @@ export default function TarifsPage() {
           </div>
         </div>
 
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const catServices = filtered.filter((s) => s.categorie === cat);
           if (catServices.length === 0) return null;
           return (
@@ -113,6 +139,7 @@ export default function TarifsPage() {
               onToggleVisible={handleToggleVisible}
               onDeleteTarif={handleDeleteTarif}
               onAddTarif={handleAddTarif}
+              onPrixBaseChange={handlePrixBaseChange}
             />
           );
         })}

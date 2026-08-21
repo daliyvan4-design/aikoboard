@@ -34,6 +34,9 @@ const baseEvent = {
   dateFin: new Date("2026-09-03"),
   lieu: "Sofitel",
   ville: "Abidjan",
+  serviceIds: [],
+  residenceIds: [],
+  residenceId: null,
 };
 
 const validBody = {

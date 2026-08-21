@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
 
 /**
  * Selection de services de conciergerie, partagee par deux ecrans :
@@ -55,6 +55,11 @@ interface Props {
    * Ne s'applique pas cote organisateur, qui en propose plusieurs.
    */
   exclusiveCategories?: string[];
+  /**
+   * Lien "voir tout" par categorie. Le depliant reste court : le catalogue
+   * complet s'ouvre dans un nouvel onglet, sans perdre le formulaire.
+   */
+  moreLinks?: Record<string, { href: string; label: string }>;
 }
 
 export function ServicePicker({
@@ -65,6 +70,7 @@ export function ServicePicker({
   showPrices = true,
   emptyLabel = "Aucun service disponible",
   exclusiveCategories = [],
+  moreLinks = {},
 }: Props) {
   const [fetched, setFetched] = useState<PickerService[]>([]);
   const [loading, setLoading] = useState(catalog);
@@ -139,65 +145,6 @@ export function ServicePicker({
               <span className="normal-case tracking-normal text-mute/60"> · un seul choix</span>
             )}
           </p>
-          {categorie === "hebergement" ? (
-            <div className="space-y-3">
-              {/* Choix rapide : une seule ligne, comme pour les pays */}
-              <select
-                value={list.find((h) => selected.includes(h.id))?.id ?? ""}
-                onChange={(e) => {
-                  const choisi = list.find((h) => h.id === e.target.value);
-                  const autres = new Set(list.map((h) => h.id));
-                  const reste = selected.filter((id) => !autres.has(id));
-                  onChange(choisi ? [...reste, choisi.id] : reste);
-                }}
-                className="w-full min-w-0 bg-cream2 border border-line rounded-xl px-4 py-3 text-[15px]"
-              >
-                <option value="">Aucun hébergement</option>
-                {list.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.nom} — {new Intl.NumberFormat("fr-FR").format(h.prixBase)} XOF / nuit
-                    {h.etoiles ? ` · ${h.etoiles}★` : ""}
-                  </option>
-                ))}
-              </select>
-
-              {/* Fiches completes : l'utilisateur voit tout ce qui existe */}
-              <div className="grid sm:grid-cols-2 gap-2">
-                {list.map((h) => {
-                  const actif = selected.includes(h.id);
-                  return (
-                    <button
-                      key={h.id}
-                      type="button"
-                      onClick={() => toggle(h)}
-                      className={`text-left border rounded-xl p-3 transition-all min-w-0 ${
-                        actif ? "border-gold bg-gold/5 ring-1 ring-gold/30" : "border-line bg-cream2 hover:border-gold/40"
-                      }`}
-                    >
-                      <span className="flex items-start justify-between gap-2">
-                        <span className="text-[13px] text-ink font-medium min-w-0">{h.nom}</span>
-                        {h.etoiles ? (
-                          <span className="text-[11px] text-gold shrink-0">{"★".repeat(h.etoiles)}</span>
-                        ) : null}
-                      </span>
-                      {h.quartier || h.badge ? (
-                        <span className="block text-[11px] text-mute mt-0.5">
-                          {[h.quartier, h.badge].filter(Boolean).join(" · ")}
-                        </span>
-                      ) : null}
-                      {h.description ? (
-                        <span className="block text-[11px] text-mute/80 mt-1 leading-snug">{h.description}</span>
-                      ) : null}
-                      <span className="block text-[13px] text-gold font-semibold mt-1.5">
-                        {new Intl.NumberFormat("fr-FR").format(h.prixBase)} XOF
-                        <span className="text-[11px] text-mute font-normal"> / nuit</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
           <div className="grid sm:grid-cols-2 gap-2">
             {list.map((s) => {
               const active = selected.includes(s.id);
@@ -231,6 +178,17 @@ export function ServicePicker({
               );
             })}
           </div>
+
+          {moreLinks[categorie] && (
+            <a
+              href={moreLinks[categorie].href}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-2 text-[13px] text-ink border border-line rounded-full px-4 py-2 hover:border-gold/50 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-gold" />
+              {moreLinks[categorie].label}
+            </a>
           )}
         </div>
       ))}

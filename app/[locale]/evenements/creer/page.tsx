@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useLocale } from "next-intl";
 import Link from "next/link";
+import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowLeft,
@@ -46,6 +47,7 @@ interface EventForm {
   offreVehicule: boolean;
   offreExtras: boolean;
   serviceIds: string[];
+  residenceIds: string[];
   institutionnel: boolean;
   residenceId: string;
   contactEmail: string;
@@ -61,6 +63,8 @@ interface ResidenceOption {
   ville: string;
   type: string;
   quartier: string | null;
+  images?: { id: string; url: string }[];
+  tarifs?: { id: string; prixParNuit: number }[];
 }
 
 const EVENT_TYPES: { value: EventType; label: string; icon: LucideIcon }[] = [
@@ -90,6 +94,7 @@ export default function CreerPage() {
     offreVehicule: false,
     offreExtras: false,
     serviceIds: [],
+    residenceIds: [],
     institutionnel: false,
     residenceId: "",
     contactEmail: "",
@@ -139,6 +144,7 @@ export default function CreerPage() {
           offreVehicule: form.offreVehicule,
           offreExtras: form.offreExtras,
           serviceIds: form.serviceIds,
+          residenceIds: form.residenceIds,
           institutionnel: form.institutionnel,
           residenceId: form.residenceId || undefined,
           contactEmail: form.contactEmail,
@@ -579,6 +585,102 @@ export default function CreerPage() {
                 onChange={(serviceIds) => update({ serviceIds })}
               />
             </div>
+
+            {residences.length > 0 && (
+              <div>
+                <p className="text-[12px] font-medium text-ink mb-1 uppercase tracking-wider">
+                  H{"é"}bergements propos{"é"}s
+                </p>
+                <p className="text-[12px] text-mute mb-3">
+                  Ces r{"é"}sidences viennent de notre parc r{"é"}el, avec leurs
+                  photos et leurs tarifs. Vos participants choisiront parmi
+                  celles que vous cochez ici.
+                </p>
+
+                <div className="flex items-center gap-3 mb-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      update({
+                        residenceIds:
+                          form.residenceIds.length === residences.length
+                            ? []
+                            : residences.map((r) => r.id),
+                      })
+                    }
+                    className="text-[12px] text-ink border border-line rounded-full px-3 py-1.5 hover:border-gold/50"
+                  >
+                    {form.residenceIds.length === residences.length
+                      ? "Tout d\u00e9cocher"
+                      : "Tout proposer"}
+                  </button>
+                  <span className="text-[12px] text-mute">
+                    {form.residenceIds.length} / {residences.length} s{"é"}lectionn{"é"}e(s)
+                  </span>
+                  <a
+                    href={`/${locale}/residences`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[12px] text-gold hover:underline ml-auto"
+                  >
+                    Voir le catalogue
+                  </a>
+                </div>
+
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {residences.map((r) => {
+                    const actif = form.residenceIds.includes(r.id);
+                    const prix =
+                      r.tarifs && r.tarifs.length > 0
+                        ? Math.min(...r.tarifs.map((t) => t.prixParNuit))
+                        : null;
+                    return (
+                      <label
+                        key={r.id}
+                        className={`flex items-start gap-2.5 cursor-pointer border rounded-xl p-2.5 transition-all min-w-0 ${
+                          actif ? "border-gold bg-gold/5" : "border-line bg-cream2 hover:border-gold/40"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={actif}
+                          onChange={() =>
+                            update({
+                              residenceIds: actif
+                                ? form.residenceIds.filter((id) => id !== r.id)
+                                : [...form.residenceIds, r.id],
+                            })
+                          }
+                          className="accent-gold w-4 h-4 mt-0.5 shrink-0"
+                        />
+                        {r.images && r.images.length > 0 && (
+                          <span className="relative h-11 w-14 shrink-0 rounded-lg overflow-hidden bg-line">
+                            <Image
+                              src={r.images[0].url}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              sizes="56px"
+                            />
+                          </span>
+                        )}
+                        <span className="min-w-0">
+                          <span className="block text-[13px] text-ink font-medium truncate">{r.nom}</span>
+                          <span className="block text-[11px] text-mute truncate">
+                            {r.quartier ? `${r.quartier}, ` : ""}{r.ville}
+                          </span>
+                          <span className="block text-[11px] text-gold mt-0.5">
+                            {prix
+                              ? `${new Intl.NumberFormat("fr-FR").format(prix)} XOF / nuit`
+                              : "tarif \u00e0 d\u00e9finir"}
+                          </span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {form.offreLogement && residences.length > 0 && (
               <div className="animate-fade-up">
