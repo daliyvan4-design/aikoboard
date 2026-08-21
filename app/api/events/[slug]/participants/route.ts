@@ -275,9 +275,31 @@ export async function GET(
     const access = await assertEventAccess(req, slug);
     if (access.error) return access.error;
 
+    // Dossier complet : l'organisateur doit pouvoir preparer l'accueil sans
+    // ouvrir une autre page — hebergement reel, devis de conciergerie et
+    // informations de voyage compris.
     const participants = await prisma.participant.findMany({
       where: { eventId: access.event.id },
       orderBy: { createdAt: "desc" },
+      include: {
+        residence: { select: { id: true, nom: true, quartier: true, ville: true } },
+        residenceTarif: {
+          select: { label: true, typeChambre: true, prixParNuit: true, capacite: true },
+        },
+        commandes: {
+          select: {
+            reference: true,
+            statut: true,
+            montantTotal: true,
+            notes: true,
+            dateArrivee: true,
+            dateDepart: true,
+            nombrePersonnes: true,
+            nationalite: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
     });
 
     return NextResponse.json({ success: true, data: participants });

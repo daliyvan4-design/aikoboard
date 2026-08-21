@@ -23,31 +23,15 @@ import {
 } from "lucide-react";
 import { loadManageToken, storeManageToken } from "@/lib/manage-token";
 import { countryName } from "@/lib/countries";
+import {
+  ParticipantFileRow,
+  estInstitutionnel,
+  estInternational,
+  type ParticipantFile,
+} from "@/components/organisateur/participant-file";
 
-interface Participant {
-  id: string;
-  reference: string;
-  ticketNumber: number;
-  prenom: string;
-  nom: string;
-  email: string;
-  telephone: string;
-  organisation: string | null;
-  type: string;
-  statut: string;
-  montant: number;
-  checkedIn: boolean;
-  createdAt: string;
-  serviceIds?: string[];
-  typeParticipant?: string;
-  passeport?: string | null;
-  paysDepart?: string | null;
-  numeroVol?: string | null;
-  planVol?: string | null;
-  aVisa?: boolean | null;
-  dateArrivee?: string | null;
-  dateRetour?: string | null;
-}
+/** Le dossier complet vit avec le composant qui l'affiche. */
+type Participant = ParticipantFile;
 
 interface EventData {
   id: string;
@@ -87,6 +71,7 @@ function OrganisateurDashboardContent() {
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [classement, setClassement] = useState<"provenance" | "client" | "tous">("provenance");
 
   useEffect(() => {
     // Le lien prive (?token=...) prime, sinon on reprend celui memorise
@@ -174,6 +159,48 @@ function OrganisateurDashboardContent() {
       p.reference.toLowerCase().includes(q)
     );
   });
+
+  // Classement par type de client : l'organisateur prepare l'accueil d'une
+  // delegation autrement que celui d'un participant local.
+  const groupes: { id: string; titre: string; lead: string; list: Participant[] }[] =
+    classement === "provenance"
+      ? [
+          {
+            id: "international",
+            titre: "Participants internationaux",
+            lead: "Vol, visa, hébergement : accueil à préparer",
+            list: filtered.filter(estInternational),
+          },
+          {
+            id: "local",
+            titre: "Participants locaux",
+            lead: "Sur place, sans formalité d'entrée",
+            list: filtered.filter((p) => !estInternational(p)),
+          },
+        ]
+      : classement === "client"
+        ? [
+            {
+              id: "institutionnel",
+              titre: "Clients institutionnels",
+              lead: "Inscrits au nom d'une organisation ou d'une délégation",
+              list: filtered.filter(estInstitutionnel),
+            },
+            {
+              id: "individuel",
+              titre: "Clients individuels",
+              lead: "Inscrits en leur nom propre",
+              list: filtered.filter((p) => !estInstitutionnel(p)),
+            },
+          ]
+        : [
+            {
+              id: "tous",
+              titre: "Tous les participants",
+              lead: "Dans l'ordre d'inscription, du plus récent au plus ancien",
+              list: filtered,
+            },
+          ];
 
   return (
     <section className="animate-fade-up">
@@ -358,137 +385,173 @@ function OrganisateurDashboardContent() {
           </div>
         )}
 
-        {/* Participant list */}
+        {/* Participants : dossier complet, classe par type de client */}
         {!accessDenied && (
-        <div className="bg-white border border-line rounded-2xl overflow-hidden">
-          <div className="px-6 py-5 border-b border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="font-serif text-[22px] text-ink">Participants</h2>
-              <p className="text-[13px] text-mute">{event._count.participants} inscrits</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="w-4 h-4 text-mute absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher..."
-                  className="bg-cream2 border border-line rounded-xl pl-9 pr-4 py-2.5 text-[13px] w-[220px]"
-                />
+          <div className="space-y-6">
+            <div className="bg-white border border-line rounded-2xl px-5 sm:px-6 py-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 min-w-0">
+              <div className="min-w-0">
+                <h2 className="font-serif text-[22px] text-ink">Participants</h2>
+                <p className="text-[13px] text-mute">
+                  {participants.length} inscrit{participants.length > 1 ? "s" : ""}
+                  {" · "}
+                  {participants.filter(estInternational).length} international
+                  {participants.filter(estInternational).length > 1 ? "aux" : ""}
+                  {" · "}
+                  {participants.filter(estInstitutionnel).length} institutionnel
+                  {participants.filter(estInstitutionnel).length > 1 ? "s" : ""}
+                </p>
               </div>
-              <button
-                onClick={() => {
-                  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-                  const sep = ";";
-                  const header = ["N°", "Reference", "Prenom", "Nom", "Email", "Telephone", "Organisation", "Type", "Montant (XOF)", "Services demandes", "Provenance", "Passeport", "Pays de depart", "Numero de vol", "Visa", "Arrivee", "Retour", "Plan de vol", "Check-in", "Date inscription"].join(sep);
-                  const rows = participants.map((p) =>
-                    [
-                      String(p.ticketNumber).padStart(4, "0"),
-                      p.reference,
-                      esc(p.prenom),
-                      esc(p.nom),
-                      p.email,
-                      p.telephone,
-                      esc(p.organisation ?? ""),
-                      p.type,
-                      String(p.montant),
-                      esc((p.serviceIds ?? []).map((id) => serviceName(id)).join(" + ")),
-                      p.typeParticipant === "international" ? "International" : "Local",
-                      esc(p.passeport ?? ""),
-                      esc(p.paysDepart ? countryName(p.paysDepart) : ""),
-                      esc(p.numeroVol ?? ""),
-                      p.aVisa === true ? "Oui" : p.aVisa === false ? "Non" : "",
-                      p.dateArrivee ? heure(p.dateArrivee) : "",
-                      p.dateRetour ? heure(p.dateRetour) : "",
-                      esc(p.planVol ?? ""),
-                      p.checkedIn ? "Oui" : "Non",
-                      new Date(p.createdAt).toLocaleDateString("fr-FR"),
-                    ].join(sep)
-                  );
-                  const bom = "﻿";
-                  const csv = bom + [header, ...rows].join("\r\n");
-                  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `${event.slug}-participants.csv`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="btn-press inline-flex items-center gap-2 bg-ink text-cream rounded-xl px-4 py-2.5 text-[13px] font-medium"
-              >
-                <Download className="w-4 h-4" />
-                CSV
-              </button>
-            </div>
-          </div>
 
-          {filtered.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <Users className="w-10 h-10 text-line mx-auto mb-3" />
-              <p className="text-mute text-[14px]">
-                {search ? "Aucun résultat" : "Aucun participant pour le moment"}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr className="text-[11px] uppercase tracking-wider text-mute bg-cream2">
-                    <th className="text-left px-6 py-3 font-medium">N°</th>
-                    <th className="text-left px-4 py-3 font-medium">Ref</th>
-                    <th className="text-left px-4 py-3 font-medium">Nom</th>
-                    <th className="text-left px-4 py-3 font-medium">Email</th>
-                    <th className="text-left px-4 py-3 font-medium">Type</th>
-                    <th className="text-right px-4 py-3 font-medium">Montant</th>
-                    <th className="text-center px-4 py-3 font-medium">Check-in</th>
-                    <th className="text-left px-6 py-3 font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="border-t border-line hover:bg-cream2/50">
-                      <td className="px-6 py-3 font-mono font-semibold">{String(p.ticketNumber).padStart(4, "0")}</td>
-                      <td className="px-4 py-3 font-mono text-gold text-[12px]">{p.reference}</td>
-                      <td className="px-4 py-3 font-medium">
-                        {p.prenom} {p.nom}
-                        {p.typeParticipant === "international" && (
-                          <span className="block text-[11px] text-mute font-normal mt-0.5">
-                            <span className="text-ink font-medium">International</span>
-                            {p.paysDepart ? ` · ${countryName(p.paysDepart)}` : ""}
-                            {p.numeroVol ? ` · vol ${p.numeroVol}` : ""}
-                            {p.dateArrivee ? ` · arrivée ${heure(p.dateArrivee)}` : ""}
-                            {p.aVisa === false ? " · sans visa" : p.aVisa === true ? " · visa OK" : ""}
-                          </span>
-                        )}
-                        {(p.serviceIds?.length ?? 0) > 0 && (
-                          <span className="block text-[11px] text-gold font-normal mt-0.5">
-                            {p.serviceIds!.map(serviceName).join(" · ")}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-mute">{p.email}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full ${p.type === "ticket" ? "bg-gold/10 text-gold" : "bg-ink/5 text-ink"}`}>
-                          {p.type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono">{p.montant > 0 ? `${new Intl.NumberFormat("fr-FR").format(p.montant)} XOF` : "Gratuit"}</td>
-                      <td className="px-4 py-3 text-center">
-                        {p.checkedIn ? (
-                          <CheckCircle2 className="w-4 h-4 text-ok mx-auto" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-line mx-auto" />
-                        )}
-                      </td>
-                      <td className="px-6 py-3 text-mute text-[12px]">{new Date(p.createdAt).toLocaleDateString("fr-FR")}</td>
-                    </tr>
+              <div className="flex flex-wrap items-center gap-3 min-w-0">
+                <div className="flex bg-cream2 border border-line rounded-full p-1">
+                  {([
+                    ["provenance", "Provenance"],
+                    ["client", "Type de client"],
+                    ["tous", "Tous"],
+                  ] as const).map(([id, label]) => (
+                    <button
+                      key={id}
+                      onClick={() => setClassement(id)}
+                      className={`text-[12px] rounded-full px-3 py-1.5 transition-colors ${
+                        classement === id ? "bg-ink text-cream" : "text-mute hover:text-ink"
+                      }`}
+                    >
+                      {label}
+                    </button>
                   ))}
-                </tbody>
-              </table>
+                </div>
+
+                <div className="relative">
+                  <Search className="w-4 h-4 text-mute absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Rechercher..."
+                    className="bg-cream2 border border-line rounded-xl pl-9 pr-4 py-2.5 text-[13px] w-[200px] min-w-0"
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+                    const sep = ";";
+                    const header = [
+                      "N", "Reference", "Type de client", "Provenance", "Prenom", "Nom", "Email",
+                      "Telephone", "Organisation", "Titre", "Billet", "Statut", "Montant (XOF)",
+                      "Hebergement", "Quartier", "Chambre", "Prix par nuit (XOF)",
+                      "Services demandes", "Devis", "Montant devis (XOF)", "Statut devis",
+                      "Sejour du", "Sejour au", "Personnes", "Nationalite",
+                      "Passeport", "Pays de depart", "Numero de vol", "Visa", "Arrivee", "Retour",
+                      "Plan de vol", "Check-in", "Heure check-in", "Date inscription",
+                    ].join(sep);
+
+                    const rows = participants.map((p) => {
+                      const devis = p.commandes?.[0];
+                      return [
+                        String(p.ticketNumber).padStart(4, "0"),
+                        p.reference,
+                        estInstitutionnel(p) ? "Institutionnel" : "Individuel",
+                        estInternational(p) ? "International" : "Local",
+                        esc(p.prenom),
+                        esc(p.nom),
+                        p.email,
+                        p.telephone,
+                        esc(p.organisation ?? ""),
+                        esc(p.titre ?? ""),
+                        p.type,
+                        p.statut,
+                        String(p.montant),
+                        esc(p.residence?.nom ?? ""),
+                        esc([p.residence?.quartier, p.residence?.ville].filter(Boolean).join(", ")),
+                        esc(p.residenceTarif?.label ?? ""),
+                        p.residenceTarif ? String(p.residenceTarif.prixParNuit) : "",
+                        esc((p.serviceIds ?? []).map((id) => serviceName(id)).join(" + ")),
+                        devis?.reference ?? "",
+                        devis ? String(devis.montantTotal) : "",
+                        devis?.statut ?? "",
+                        devis ? new Date(devis.dateArrivee).toLocaleDateString("fr-FR") : "",
+                        devis ? new Date(devis.dateDepart).toLocaleDateString("fr-FR") : "",
+                        devis ? String(devis.nombrePersonnes) : "",
+                        esc(devis?.nationalite ? countryName(devis.nationalite) : ""),
+                        esc(p.passeport ?? ""),
+                        esc(p.paysDepart ? countryName(p.paysDepart) : ""),
+                        esc(p.numeroVol ?? ""),
+                        p.aVisa === true ? "Oui" : p.aVisa === false ? "Non" : "",
+                        p.dateArrivee ? heure(p.dateArrivee) : "",
+                        p.dateRetour ? heure(p.dateRetour) : "",
+                        esc((p.planVol ?? "").replace(/\r?\n/g, " ")),
+                        p.checkedIn ? "Oui" : "Non",
+                        p.checkedIn && p.checkedInAt ? heure(p.checkedInAt) : "",
+                        new Date(p.createdAt).toLocaleDateString("fr-FR"),
+                      ].join(sep);
+                    });
+
+                    const bom = "\ufeff";
+                    const csv = bom + [header, ...rows].join("\r\n");
+                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${event.slug}-participants.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="btn-press inline-flex items-center gap-2 bg-ink text-cream rounded-xl px-4 py-2.5 text-[13px] font-medium"
+                >
+                  <Download className="w-4 h-4" />
+                  CSV
+                </button>
+              </div>
             </div>
-          )}
-        </div>
+
+            {participants.length === 0 ? (
+              <div className="bg-white border border-line rounded-2xl px-6 py-16 text-center">
+                <Users className="w-10 h-10 text-line mx-auto mb-3" />
+                <p className="text-mute text-[14px]">Aucun participant pour le moment</p>
+              </div>
+            ) : (
+              groupes.map((g) => (
+                <div key={g.id} className="bg-white border border-line rounded-2xl overflow-hidden min-w-0">
+                  <div className="px-5 py-4 border-b border-line bg-cream2/50 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 min-w-0">
+                    <div className="min-w-0">
+                      <h3 className="font-serif text-[18px] text-ink">{g.titre}</h3>
+                      <p className="text-[12px] text-mute">{g.lead}</p>
+                    </div>
+                    <div className="text-[12px] text-mute flex flex-wrap gap-x-4 gap-y-1">
+                      <span>
+                        <strong className="text-ink">{g.list.length}</strong> inscrit
+                        {g.list.length > 1 ? "s" : ""}
+                      </span>
+                      <span>
+                        <strong className="text-ink">{g.list.filter((p) => p.checkedIn).length}</strong>{" "}
+                        check-in
+                      </span>
+                      <span>
+                        <strong className="text-ink">
+                          {new Intl.NumberFormat("fr-FR").format(
+                            g.list.reduce((sum, p) => sum + p.montant, 0),
+                          )}
+                        </strong>{" "}
+                        XOF
+                      </span>
+                    </div>
+                  </div>
+
+                  {g.list.length === 0 ? (
+                    <p className="px-5 py-10 text-[13px] text-mute text-center">
+                      {search ? "Aucun résultat dans cette catégorie" : "Personne dans cette catégorie"}
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-line">
+                      {g.list.map((p) => (
+                        <ParticipantFileRow key={p.id} participant={p} serviceName={serviceName} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
     </section>
