@@ -111,6 +111,35 @@ Capacité et numéro de ticket sont attribués dans une même transaction, prot�
 par une contrainte unique `(eventId, ticketNumber)` avec reprise en cas de
 collision. Un événement complet répond `409 EVENT_FULL`.
 
+### Hébergements et conciergerie
+
+Deux catalogues, deux natures :
+
+| | Source | Administré dans |
+|---|---|---|
+| Hébergement | `Residence` + `ResidenceTarif` | `/admin/residences` |
+| Transport, véhicules, repas, extras | `Service` + `Tarif` | `/admin/tarifs` |
+
+Un hébergement a des photos, des chambres et un prix qui varie selon la
+chambre : il ne se saisit donc pas comme un service. L'organisateur coche
+les résidences qu'il propose (`Event.residenceIds`), le participant en
+retient une et sa chambre (`Participant.residenceId` /
+`residenceTarifId`).
+
+Une ligne de devis (`LigneCommande`) porte **soit** un service du
+catalogue, **soit** une chambre — `serviceId` et `residenceTarifId` sont
+tous deux facultatifs, jamais renseignés ensemble. Le back-office
+(planning, statistiques, détail des commandes) lit les deux cas.
+
+Une résidence sans tarif reste proposable : elle part au devis en « prix
+sur demande », avec une note à chiffrer par l'équipe. `/admin/residences`
+signale combien de résidences sont dans ce cas.
+
+Les listes déroulantes du formulaire d'inscription restent courtes ; les
+catalogues complets vivent sur `/[locale]/residences` et
+`/[locale]/vehicules`, ouverts dans un nouvel onglet pour ne pas perdre
+la saisie en cours.
+
 ### Vidéo du hero
 
 La page d'accueil réserve presque toute la hauteur du hero à une vidéo.
