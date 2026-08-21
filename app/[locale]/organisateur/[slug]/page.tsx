@@ -394,8 +394,8 @@ function OrganisateurDashboardContent() {
                 <p className="text-[13px] text-mute">
                   {participants.length} inscrit{participants.length > 1 ? "s" : ""}
                   {" · "}
-                  {participants.filter(estInternational).length} international
-                  {participants.filter(estInternational).length > 1 ? "aux" : ""}
+                  {participants.filter(estInternational).length} internation
+                  {participants.filter(estInternational).length > 1 ? "aux" : "al"}
                   {" · "}
                   {participants.filter(estInstitutionnel).length} institutionnel
                   {participants.filter(estInstitutionnel).length > 1 ? "s" : ""}
