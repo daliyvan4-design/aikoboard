@@ -18,6 +18,7 @@ import {
   CalendarDays,
   LucideIcon,
 } from "lucide-react";
+import { rolesDePage, TOUS_LES_ROLES } from "@/lib/admin-access";
 
 interface NavItem {
   href: string;
@@ -28,15 +29,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/admin/dashboard", icon: LayoutDashboard, label: "Tableau de bord", roles: ["ADMIN", "SUPERVISEUR", "CONCIERGE", "AGENT_INSTITUTIONNEL", "SCANNER"] },
-  { href: "/admin/briefing", icon: ClipboardCheck, label: "Briefing", roles: ["CONCIERGE"] },
-  { href: "/admin/commandes", icon: ClipboardList, label: "Commandes", badge: true, roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/admin/events", icon: CalendarDays, label: "Événements", roles: ["ADMIN", "SUPERVISEUR", "AGENT_INSTITUTIONNEL"] },
-  { href: "/admin/residences", icon: Building, label: "Residences", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/admin/tarifs", icon: Banknote, label: "Tarifs", roles: ["ADMIN", "CONCIERGE"] },
-  { href: "/admin/voyageurs", icon: Users, label: "Voyageurs", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/admin/chauffeurs", icon: CarFront, label: "Chauffeurs", roles: ["ADMIN", "SUPERVISEUR"] },
-  { href: "/admin/rapports", icon: BarChart3, label: "Rapports", roles: ["ADMIN", "SUPERVISEUR"] },
+  { href: "/admin/dashboard", icon: LayoutDashboard, label: "Tableau de bord", roles: TOUS_LES_ROLES },
+  { href: "/admin/briefing", icon: ClipboardCheck, label: "Briefing", roles: rolesDePage("/admin/briefing")},
+  { href: "/admin/commandes", icon: ClipboardList, label: "Commandes", badge: true, roles: rolesDePage("/admin/commandes")},
+  { href: "/admin/events", icon: CalendarDays, label: "Événements", roles: rolesDePage("/admin/events")},
+  { href: "/admin/residences", icon: Building, label: "Residences", roles: rolesDePage("/admin/residences")},
+  { href: "/admin/tarifs", icon: Banknote, label: "Tarifs", roles: rolesDePage("/admin/tarifs") },
+  { href: "/admin/voyageurs", icon: Users, label: "Voyageurs", roles: rolesDePage("/admin/voyageurs")},
+  { href: "/admin/chauffeurs", icon: CarFront, label: "Chauffeurs", roles: rolesDePage("/admin/chauffeurs")},
+  { href: "/admin/rapports", icon: BarChart3, label: "Rapports", roles: rolesDePage("/admin/rapports")},
 ];
 
 const ROLE_DISPLAY: Record<Role, string> = {

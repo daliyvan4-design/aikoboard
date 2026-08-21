@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/admin-auth";
+import { requireAnyAdmin } from "@/lib/admin-auth";
 import bcrypt from "bcryptjs";
 import { MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 export async function PATCH(request: NextRequest) {
-  const { session, error } = await requireRole("ADMIN", "SUPERVISEUR", "CONCIERGE");
+  // Self-service, borne a son propre compte : un scanner aussi doit
+  // pouvoir changer son mot de passe.
+  const { session, error } = await requireAnyAdmin();
   if (error) return error;
 
   const { currentPassword, newPassword } = await request.json();

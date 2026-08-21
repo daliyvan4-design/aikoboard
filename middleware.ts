@@ -3,6 +3,7 @@ import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./lib/i18n-routing";
 import { getToken } from "next-auth/jwt";
 import { rateLimit } from "./lib/rate-limit";
+import { pageAutorisee } from "./lib/admin-access";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -38,6 +39,14 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
+
+    // Etre connecte ne suffit pas : un scanner n'a rien a faire dans
+    // l'editeur de tarifs. Sans ce filtre, la page s'affichait quand meme
+    // et se remplissait de 403 — un ecran mort plutot qu'un refus clair.
+    if (!pageAutorisee(pathname, token.role as string | undefined)) {
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    }
+
     return NextResponse.next();
   }
 

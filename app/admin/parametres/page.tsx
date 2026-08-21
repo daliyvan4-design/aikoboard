@@ -29,6 +29,8 @@ export default function ParametresPage() {
   const { data: session } = useSession();
   const { show } = useToast();
   const isAdmin = session?.user?.role === "ADMIN";
+  const peutGererLesComptes =
+    session?.user?.role === "ADMIN" || session?.user?.role === "SUPERVISEUR";
 
   const [nom, setNom] = useState("");
   const [email, setEmail] = useState("");
@@ -44,7 +46,10 @@ export default function ParametresPage() {
   const [showAddUser, setShowAddUser] = useState(false);
 
   const fetchUsers = () => {
-    fetch("/api/admin/users").then((r) => r.json()).then(setUsers);
+    // Seuls l'admin et le superviseur gerent les comptes : demander la
+    // liste avec un autre role ne ramenait qu'un 403.
+    if (!peutGererLesComptes) return;
+    fetch("/api/admin/users").then((r) => r.json()).then(setUsers).catch(() => {});
   };
 
   useEffect(() => {
